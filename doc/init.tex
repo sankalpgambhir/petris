@@ -1,0 +1,77 @@
+% general math/drawing stuff
+\usepackage{geometry}
+\usepackage{mathtools}
+\usepackage[]{graphics}
+%\usepackage{tikz}      -- see tikz section
+%\usepackage{pgfplots}
+\usepackage{amsmath, amssymb}
+
+% Packages for algorithms/code -- copied, possibly unnecessary
+\usepackage{listings}
+\usepackage{verbatim}
+\usepackage{algorithmicx}
+\usepackage[noend]{algpseudocode}
+\usepackage{algorithm}
+\algdef{SE}[DOWHILE]{Do}{doWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
+
+% nicer author management
+%\usepackage{authblk}
+
+% colorsssss
+\usepackage[dvipsnames]{xcolor}
+% define your colors at the end
+
+% drawing tools
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.16}
+% add all required graph elements here
+\usetikzlibrary{arrows.meta, automata, backgrounds, shapes, decorations}
+
+% useful common symbols idk copied em
+\newcommand{\booleans}{\mathbb{B}}
+\newcommand{\naturals}{\mathbb{N}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\ordinals}{\mathbb{O}}
+\newcommand{\numarals}{\mathbb{I}}
+\newcommand{\reals}{\mathbb{R}}
+
+\newcommand{\maps}{\rightarrow}
+\newcommand{\pmaps}{\hookrightarrow}
+
+\newcommand{\union}{{\cup} }
+\newcommand{\Union}{{\bigcup} }
+\newcommand{\powerset}[1]{2^{#1}}
+\newcommand{\intersection}{{\cap} }
+\newcommand{\intersect}{\intersection}
+\newcommand{\Intersection}{{\bigcap} }
+\newcommand{\compose}{{\circ} }
+
+
+\newcommand{\ltrue}{\mathbf{tt}}
+\newcommand{\lfalse}{\mathbf{ff}}
+\newcommand{\limplies}{\Rightarrow}
+\newcommand{\lxor}{\oplus}
+\newcommand{\Land}{\bigwedge}
+\newcommand{\Lor}{\bigvee}
+\newcommand{\Lxor}{\bigoplus}
+\newcommand{\lequiv}{\Leftrightarrow}
+\newcommand{\landplus}{\mathrel{:\hspace{-3pt}\land\hspace{-3pt}=}}
+\newcommand{\lorplus}{\mathrel{:\hspace{-3pt}\lor\hspace{-3pt}=}}
+
+
+% author notes
+\newcommand{\pushkar}[1]{{\color{Aquamarine} Pushkar: #1}}
+\newcommand{\sankalp}[1]{{\color{RubineRed} Sankalp: #1}}
+
+
+% colorssssss
+\definecolor{test}{HTML}{FF0000}
+
+% general macros go here
+\newcommand{\petris}{\texttt{petris}}
+
+
+% allow a figure to be broken across columns and pages
+% its absence is a source of sheer annoyance - sg
+\allowdisplaybreaks{}
