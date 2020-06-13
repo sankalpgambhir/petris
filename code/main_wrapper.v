@@ -15,7 +15,22 @@ module main_wrapper();
 
     initial begin
         // filler
-    end    
+    end
+
+    // temporarily instantiate every module to have only one top module
+    reg [2:0] frame_out [0:799] [0:524];
+    reg [2:0] vga_pixel;
+    reg hsync, vsync;
+    reg [15:0] GLYPH_ROM [0:255][0:7];
+    framer framer_inst(vsync, frame_out);
+    vga_control vga_cont(
+        vga_clock,
+        frame_out,
+        vga_pixel,
+        hsync,
+        vsync
+    );
+    rom rom_inst(GLYPH_ROM);    
 
 
 endmodule
