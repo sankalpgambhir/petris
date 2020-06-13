@@ -1,6 +1,6 @@
 // internal vga sync signal and print counter generation
 
-module vga_sync(
+module vga_sync_gen(
     input clock,
     output reg hsync,               // line end
     output reg vsync,               // screen end

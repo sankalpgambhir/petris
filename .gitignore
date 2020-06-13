@@ -1,1 +1,3 @@
 doc/main.synctex.gz
+code/obj_dir/*
+code/.vscode/*

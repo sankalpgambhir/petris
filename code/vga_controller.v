@@ -9,6 +9,7 @@ module vga_control(
     output vsync_out
     );
 
+    // I haven't actually used these for now so they're on trial for removal
     localparam R = 0;
     localparam G = 1;
     localparam B = 2;
@@ -18,7 +19,7 @@ module vga_control(
     wire [9:0] count_y;
 
     // generate count and sync signals
-    vga_sync sync(
+    vga_sync_gen sync(
         clock,
         hsync_out,
         vsync_out,
