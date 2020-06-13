@@ -15,7 +15,7 @@ double sc_time_stamp(void){
 int main(int argc, char* argv[]){
     Verilated::commandArgs(argc, argv); // pass args to verilator
 
-    auto wrapper = new Vmain_wrapper; // instantiate top module
+    auto* wrapper = new Vmain_wrapper; // instantiate top module
 
     while (!Verilated::gotFinish()){ // or SDL_Quit
         wrapper->clock = wrapper->clock ? 0 : 1;
