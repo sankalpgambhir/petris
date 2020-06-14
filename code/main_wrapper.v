@@ -17,6 +17,10 @@ module main_wrapper();
         // filler
     end
 
+    always @(posedge clock) begin
+        $display("Hi test");
+    end
+
     // temporarily instantiate every module to have only one top module
     reg [2:0] frame_out [0:799] [0:524];
     reg [2:0] vga_pixel;
