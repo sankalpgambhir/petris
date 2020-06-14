@@ -1,7 +1,7 @@
 #include <verilated.h>
 #include <cstdio>
 #include <iostream>
-#include "obj_dir/Vmain_wrapper.h"
+#include "obj_dir/Vamain_wrapper.h"
 #include <chrono>
 #include <SDL2/SDL.h>
 #include <tuple>
@@ -32,13 +32,14 @@ int check_event(const Uint8*);
 int main(int argc, char* argv[]){
     Verilated::commandArgs(argc, argv); // pass args to verilator
 
-    auto* wrapper = new Vmain_wrapper; // instantiate top module
+    auto* wrapper = new Vamain_wrapper; // instantiate top module
 
 
     auto end = std::chrono::steady_clock::now();
     auto start = end;
     auto time_taken = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count(); 
 
+    //wrapper->main_wrapper->v__DOT__r;
 
     // initialize frame
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -66,31 +67,39 @@ int main(int argc, char* argv[]){
 
         wrapper->eval();
 
-        // take input and validate
-        SDL_PollEvent(&e);
-        
-        if(e.type == SDL_QUIT){
-            break;
-        }
-        else if (e.type == SDL_KEYDOWN){
-            actions = check_event(keys);
-        } // move around with action
-
-        wrapper->actions = actions;
 
         // generate pixel array
+        if(wrapper->in_display){
+            pixel_array[wrapper->count_x + WIDTH * wrapper->count_y] = 0;
+        }
 
         // update frame
-        if(update_frame(&renderer, &texture, pixel_array)){
-            printf("Could not update frame! %s", SDL_GetError());
-            break;
+        if(!wrapper->vsync){
+            // take input and validate
+            SDL_PollEvent(&e);
+            
+            if(e.type == SDL_QUIT){
+                break;
+            }
+            else if (e.type == SDL_KEYDOWN){
+                actions = check_event(keys);
+            } // move around with action
+
+            wrapper->actions = actions;
+            if(update_frame(&renderer, &texture, pixel_array)){
+                printf("Could noith VL_DEBUG and turning on runtime debug to see how many times the model evaluates. It's unlikely to be as high ast update frame! %s", SDL_GetError());
+                break;
+            }
+
         }
 
         // measure loop time
         end = std::chrono::steady_clock::now();
-        time_taken = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count(); 
+        time_taken = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count(); 
         start = end;
-        //printf("%d ns\n", time_taken);
+        if(!wrapper->hsync){
+            //printf("%d us\n", time_taken);
+        }
 
         // add possible delay here based on frame rate
         main_time++;

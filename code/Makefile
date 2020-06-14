@@ -12,7 +12,15 @@ clean:
 	rm *.o
 
 verilate: 
-	verilator main_wrapper.v --cc -Wno-WIDTH
+	verilator amain_wrapper.v --cc -Wno-WIDTH
+
+verilateall:
+	verilator $(VERILATING) --cc -Wno-WIDTH
+
+verilation: *.v
+
+%.v:
+	verilator $@ --cc -Wno-WIDTH
 
 execute:
 	g++ execution.cc $(OBJECTS) $(VERILATORCPP) -I$(VERILATOR_INCLUDE) -lSDL2 -o execution.o

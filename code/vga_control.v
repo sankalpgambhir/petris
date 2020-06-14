@@ -4,19 +4,29 @@
 module vga_control(
     input clock,
     input reg [2:0] frame_buffer [0:799] [0:524], // fb [x][y][R | G | B]
-    output reg [2:0] vga_pixel,
+    output wire vga_r,
+    output wire vga_g,
+    output wire vga_b,
     output hsync_out,
-    output vsync_out
+    output vsync_out,
+    output in_display,
+    output reg [9:0] count_x,
+    output reg [9:0] count_y
     );
 
-    // I haven't actually used these for now so they're on trial for removal
     localparam R = 0;
     localparam G = 1;
     localparam B = 2;
 
-    wire in_display;
-    wire [9:0] count_x;
-    wire [9:0] count_y;
+    //wire in_display;
+    //wire [9:0] count_x;
+    //wire [9:0] count_y;
+
+    reg [2:0] vga_pixel;
+
+    assign vga_r = vga_pixel[R];
+    assign vga_g = vga_pixel[G];
+    assign vga_b = vga_pixel[B];
 
     // generate count and sync signals
     vga_sync_gen sync(
