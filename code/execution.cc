@@ -16,6 +16,7 @@
 
 // a bit annoyed by Verilator's naming
 #define clock main_wrapper__DOT__clock
+#define Vaction main_wrapper__DOT__actions
 
 vluint64_t main_time = 0; // simulation time
 
@@ -79,6 +80,8 @@ int main(int argc, char* argv[]){
         else if (e.type == SDL_KEYDOWN){
             action = check_event(keys);
         } // move around with action
+        
+        wrapper->Vaction = action;
 
         // generate pixel array
 

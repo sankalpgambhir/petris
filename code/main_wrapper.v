@@ -5,6 +5,7 @@
 module main_wrapper();
     reg clock;
     reg vga_clock;
+    reg [1:0] actions;
 
     // clock incremented from C++ wrapper
 
