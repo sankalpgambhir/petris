@@ -18,7 +18,7 @@ module main_wrapper();
     end
 
     always @(posedge clock) begin
-        $display("Hi test");
+        // hi
     end
 
     // temporarily instantiate every module to have only one top module

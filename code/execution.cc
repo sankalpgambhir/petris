@@ -1,5 +1,6 @@
 #include <verilated.h>
 #include <cstdio>
+#include <iostream>
 #include "obj_dir/Vmain_wrapper.h"
 #include <chrono>
 #include <SDL2/SDL.h>
@@ -24,8 +25,11 @@ double sc_time_stamp(void){
 }
 
 // function prototypes
-std::tuple<SDL_Renderer*, SDL_Window*, SDL_Texture*> init_frame(void);
-void clean_frame(SDL_Renderer*, SDL_Window*, SDL_Texture*);
+void init_frame(SDL_Renderer**, SDL_Window**, SDL_Texture**);
+int update_frame(SDL_Renderer**, SDL_Texture**, Uint32*);
+void clean_frame(SDL_Renderer**, SDL_Window**, SDL_Texture**);
+
+int check_event(const Uint8*);
 
 
 int main(int argc, char* argv[]){
@@ -40,7 +44,22 @@ int main(int argc, char* argv[]){
 
 
     // initialize frame
-    auto [renderer, window, texture] = init_frame();
+    SDL_Init(SDL_INIT_EVERYTHING);
+    SDL_Renderer* renderer;
+    SDL_Window* window;
+    SDL_Texture* texture;
+    init_frame(&renderer, &window, &texture);
+    Uint32 pixel_array [WIDTH * HEIGHT];
+    int count_x = 0, count_y = 0;
+
+    SDL_Event e;
+    int action = 0;
+    const Uint8 *keys = SDL_GetKeyboardState(nullptr);
+
+    for(int i = 0; i < WIDTH*HEIGHT; i++){
+        pixel_array[i] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), 0x00, 0x00, 0x00, 0x00);
+        std::cout << pixel_array[i];
+    }
 
     if (window == nullptr){
         return -1;
@@ -51,8 +70,23 @@ int main(int argc, char* argv[]){
 
         wrapper->eval();
 
-        // update frame
+        // take input and validate
+        SDL_PollEvent(&e);
         
+        if(e.type == SDL_QUIT){
+            break;
+        }
+        else if (e.type == SDL_KEYDOWN){
+            action = check_event(keys);
+        } // move around with action
+
+        // generate pixel array
+
+        // update frame
+        if(update_frame(&renderer, &texture, pixel_array)){
+            printf("Could not update frame! %s", SDL_GetError());
+            break;
+        }
 
         // measure loop time
         end = std::chrono::steady_clock::now();
@@ -66,44 +100,54 @@ int main(int argc, char* argv[]){
 
     // simulation finishes, clean up
     wrapper->final();
-    clean_frame(renderer, window, texture);
-    delete wrapper;
+    clean_frame(&renderer, &window, &texture);
+    delete wrapper, renderer, window, texture;
 
     return 0;
 }
 
-std::tuple<SDL_Renderer*, SDL_Window*, SDL_Texture*> init_frame(void){
-    SDL_Renderer* renderer;
-    SDL_Window* window;
-    SDL_Texture* texture;
-    SDL_Init(SDL_INIT_EVERYTHING);
-
-    SDL_CreateWindowAndRenderer(WIDTH, HEIGHT, SDL_WINDOW_INPUT_GRABBED, &window, &renderer);
+void init_frame(SDL_Renderer** renderer, SDL_Window** window, SDL_Texture** texture){
+    SDL_CreateWindowAndRenderer(WIDTH, HEIGHT, SDL_WINDOW_INPUT_FOCUS, window, renderer);
+    SDL_SetWindowTitle(*window, WINDOW_TITLE);
     SDL_Delay(100);
-    if(window == nullptr){
+    if(*window == nullptr){
         printf("Couldn't initialize window!\t%s", SDL_GetError());
-        return {nullptr, nullptr, nullptr};
+        return ;
     }
-    SDL_SetWindowTitle(window, WINDOW_TITLE);
-    SDL_RenderClear(renderer);
+    SDL_RenderClear(*renderer);
 
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, HPITCH, VPITCH);
-
-    return {renderer, window, texture};
+    *texture = SDL_CreateTexture(*renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT);
+    return ;
 }
 
-int update_frame(SDL_Renderer* renderer, SDL_Texture* texture, Uint32 pixel_array[]){
-    int pitch = HPITCH * sizeof(Uint32);
-    SDL_UpdateTexture(texture, nullptr, pixel_array, pitch);
+int update_frame(SDL_Renderer** renderer, SDL_Texture** texture, Uint32 pixel_array[]){
+    int pitch = WIDTH * sizeof(Uint32);
+    SDL_UpdateTexture(*texture, nullptr, pixel_array, pitch);
 
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, texture, nullptr, nullptr);
-    SDL_RenderPresent(renderer);
+    SDL_RenderClear(*renderer);
+    SDL_RenderCopy(*renderer, *texture, nullptr, nullptr);
+    SDL_RenderPresent(*renderer);
+
+    return 0;
 }
 
-void clean_frame(SDL_Renderer* renderer, SDL_Window* window, SDL_Texture* texture){
-    SDL_DestroyTexture(texture);
-    SDL_DestroyWindow(window);
-    SDL_DestroyRenderer(renderer);
+void clean_frame(SDL_Renderer** renderer, SDL_Window** window, SDL_Texture** texture){
+    SDL_DestroyTexture(*texture);
+    SDL_DestroyWindow(*window);
+    SDL_DestroyRenderer(*renderer);
     SDL_Quit();
+
+    return ;
+}
+
+int check_event(const Uint8* keys){
+    int actions = 0;
+    if (keys[SDL_SCANCODE_LEFT]){
+        actions += 0b0010;
+    }
+    if (keys[SDL_SCANCODE_RIGHT]){
+        actions += 0b0001;
+    }
+
+    return actions;
 }
