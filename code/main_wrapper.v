@@ -2,10 +2,11 @@
 // using C++ clock
 //`timescale 1ns / 1ns
 
-module main_wrapper();
-    reg clock;
+module main_wrapper(
+        input clock,
+        input reg [1:0] actions
+    );
     reg vga_clock;
-    reg [1:0] actions;
 
     // clock incremented from C++ wrapper
 
@@ -19,7 +20,10 @@ module main_wrapper();
     end
 
     always @(posedge clock) begin
-        // hi
+        if(actions[0])
+            $display("right");
+        if(actions[1])
+            $display("left");        
     end
 
     // temporarily instantiate every module to have only one top module

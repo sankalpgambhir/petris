@@ -14,10 +14,6 @@
 #define HPITCH 800
 #define VPITCH 525
 
-// a bit annoyed by Verilator's naming
-#define clock main_wrapper__DOT__clock
-#define Vaction main_wrapper__DOT__actions
-
 vluint64_t main_time = 0; // simulation time
 
 // used by $time
@@ -54,12 +50,11 @@ int main(int argc, char* argv[]){
     int count_x = 0, count_y = 0;
 
     SDL_Event e;
-    int action = 0;
+    int actions = 0;
     const Uint8 *keys = SDL_GetKeyboardState(nullptr);
 
     for(int i = 0; i < WIDTH*HEIGHT; i++){
         pixel_array[i] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), 0x00, 0x00, 0x00, 0x00);
-        std::cout << pixel_array[i];
     }
 
     if (window == nullptr){
@@ -78,10 +73,10 @@ int main(int argc, char* argv[]){
             break;
         }
         else if (e.type == SDL_KEYDOWN){
-            action = check_event(keys);
+            actions = check_event(keys);
         } // move around with action
-        
-        wrapper->Vaction = action;
+
+        wrapper->actions = actions;
 
         // generate pixel array
 
@@ -95,7 +90,7 @@ int main(int argc, char* argv[]){
         end = std::chrono::steady_clock::now();
         time_taken = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count(); 
         start = end;
-        printf("%d ns\n", time_taken);
+        //printf("%d ns\n", time_taken);
 
         // add possible delay here based on frame rate
         main_time++;
