@@ -13,6 +13,9 @@
 #define HEIGHT 480
 #define HPITCH 800
 #define VPITCH 525
+#define INTSCALE 20
+#define OFFSETX 200
+#define OFFSETY 35
 
 vluint64_t main_time = 0; // simulation time
 
@@ -28,6 +31,9 @@ void clean_frame(SDL_Renderer**, SDL_Window**, SDL_Texture**);
 
 int check_event(const Uint8*);
 
+void integer_scale(Uint32[10][20], Uint32[200][400], int);
+void linearize_pixel(Uint32[200][400], Uint32[]);
+
 
 int main(int argc, char* argv[]){
     Verilated::commandArgs(argc, argv); // pass args to verilator
@@ -39,7 +45,8 @@ int main(int argc, char* argv[]){
     auto start = end;
     auto time_taken = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count(); 
 
-    //wrapper->main_wrapper->v__DOT__r;
+    int num_pix = WIDTH * HEIGHT;
+    int num_reduced_pix = (num_pix) / (INTSCALE*INTSCALE);
 
     // initialize frame
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -47,14 +54,17 @@ int main(int argc, char* argv[]){
     SDL_Window* window;
     SDL_Texture* texture;
     init_frame(&renderer, &window, &texture);
-    Uint32 pixel_array [WIDTH * HEIGHT];
+    Uint32 reduced_matrix[10][20];
+    Uint32 pixel_matrix[10*INTSCALE][20*INTSCALE];
+    Uint32 pixel_array [num_pix];
     int count_x = 0, count_y = 0;
 
     SDL_Event e;
     int actions = 0;
     const Uint8 *keys = SDL_GetKeyboardState(nullptr);
 
-    for(int i = 0; i < WIDTH*HEIGHT; i++){
+    // clean grid
+    for(int i = 0; i < num_pix; i++){
         pixel_array[i] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), 0x00, 0x00, 0x00, 0x00);
     }
 
@@ -67,16 +77,32 @@ int main(int argc, char* argv[]){
 
         wrapper->eval();
 
+        //if (wrapper->in_display && !wrapper->vga_r){
+        //    printf("Problem %d\n", wrapper->vga_r);
+        //}
+        
+
 
         // generate pixel array
         if(wrapper->in_display){
-            pixel_array[wrapper->count_x + WIDTH * wrapper->count_y] = 0;
+            reduced_matrix[wrapper->count_x][wrapper->count_y] = 
+                SDL_MapRGBA(
+                    SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888),
+                    (int) wrapper->vga_r * 0xFF,
+                    (int) wrapper->vga_g * 0xFF,
+                    (int) wrapper->vga_b * 0xFF,
+                    0xFF // alpha
+                );
+            printf("%d, %d, %d\n", wrapper->vga_r, wrapper->vga_g, wrapper->vga_b);
         }
 
         // update frame
         if(!wrapper->vsync){
             // take input and validate
             SDL_PollEvent(&e);
+
+            integer_scale(reduced_matrix, pixel_matrix, INTSCALE);
+            linearize_pixel(pixel_matrix, pixel_array);
             
             if(e.type == SDL_QUIT){
                 break;
@@ -87,7 +113,7 @@ int main(int argc, char* argv[]){
 
             wrapper->actions = actions;
             if(update_frame(&renderer, &texture, pixel_array)){
-                printf("Could noith VL_DEBUG and turning on runtime debug to see how many times the model evaluates. It's unlikely to be as high ast update frame! %s", SDL_GetError());
+                printf("Couldn't update frame! %s", SDL_GetError());
                 break;
             }
 
@@ -157,4 +183,26 @@ int check_event(const Uint8* keys){
     }
 
     return actions;
+}
+
+void integer_scale(Uint32 from[10][20], Uint32 to[10*INTSCALE][20*INTSCALE], int scale){
+    for(int i = 0; i < 10; i++){
+        for(int j = 0; j < 20; j++){
+            for(int k = 0; k < scale; k++){
+                for(int l = 0; l < scale; l++){
+                    to[i*scale + k][j*scale + l] = from[i][j];
+                }
+            }
+        }        
+    }
+    return ;   
+}
+
+void linearize_pixel(Uint32 from[10*INTSCALE][20*INTSCALE], Uint32 to[WIDTH*HEIGHT]){
+    for(int i = 0; i < 10*INTSCALE; i++){
+        for(int j = 0; j < (20 * INTSCALE); j++){
+            to[(i + OFFSETX) + (j + OFFSETY)*WIDTH] = from[i][j];
+        }    
+    }
+    return ;  
 }

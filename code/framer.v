@@ -2,33 +2,38 @@
 
 module framer(
     input vsync,
-    output reg [2:0] frame_out [0:799] [0:524]
+    output reg [2:0] frame_out [0:9] [0:19],
+    input reg [2:0] frame_buffer [0:9] [0:19]
     );
 
     // public :
 
     // frame buffer with asynchronous public access
-    reg [2:0] frame_buffer [0:799] [0:524];
+    // using externally managed buffer
+    //reg [2:0] frame_buffer [0:9] [0:19];
 
     // mutex for access control
-    reg frame_buffer_lock;
+    // not using public access buffer drawing right now
+    //reg frame_buffer_lock;
 
     // private :
-    integer i, j;
+    // not using buffer clear right now
+    //integer i, j;
 
     initial begin
-        frame_buffer_lock = 0; // unlocked
+        //frame_buffer_lock = 0; // unlocked
     end
 
     // reset and write frame buffer on screen end
     always @(posedge vsync) begin
         frame_out <= frame_buffer;
-
-        for (i = 0; i < 640; i = i + 1) begin
-            for (j = 0; j < 480; i = j + 1) begin
+        /*
+        for (i = 0; i < 10; i = i + 1) begin
+            for (j = 0; j < 20; i = j + 1) begin
                 frame_buffer[i][j] <= 3'b000;
             end
         end
+        */
     end
 
 

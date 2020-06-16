@@ -9,8 +9,8 @@ module vga_sync_gen(
     output reg [9:0] count_y        // extended to 10 bits for uniformity
 );
                                     // front_porch + sync + back_porch + display
-    wire high_x = (count_x == 800); // 16 + 48 + 96 + 640
-    wire high_y = (count_y == 525); // 10 + 2 + 33 + 480
+    wire high_x = (count_x == 17); // 1 + 5 + 1 + 10
+    wire high_y = (count_y == 24); // 1 + 2 + 1 + 20
 
     // increment or loop x and y
     always @(posedge clock) begin
@@ -29,10 +29,10 @@ module vga_sync_gen(
     always @(posedge clock) begin
         // ~*sync if count_# in sync region in # direction
         // low only in sync region
-        hsync <= ~(count_x > (640 + 16) && count_x < (640 + 16 + 48));
-        vsync <= ~(count_y > (480 + 10) && count_y < (480 + 10 + 2));
+        hsync <= ~(count_x > (10 + 1) && count_x < (10 + 1 + 5));
+        vsync <= ~(count_y > (20 + 1) && count_y < (20 + 1 + 2));
 
-        in_display <= (count_x < 640) && (count_y < 480);
+        in_display <= (count_x < 10) && (count_y < 20);
     end
 
 endmodule

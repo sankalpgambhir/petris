@@ -3,3 +3,4 @@ code/obj_dir/*
 code/.vscode/*
 *.o
 *.vtest
+*.cctest
