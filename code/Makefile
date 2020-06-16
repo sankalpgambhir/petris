@@ -23,7 +23,7 @@ verilation: *.v
 	verilator $@ --cc -Wno-WIDTH
 
 execute:
-	g++ execution.cc $(OBJECTS) $(VERILATORCPP) -I$(VERILATOR_INCLUDE) -lSDL2 -o execution.o
+	g++ execution.cc $(OBJECTS) $(VERILATORCPP) -I$(VERILATOR_INCLUDE) -lSDL2 -lSDL2_ttf -o execution.o
 	@echo "=================="
 	@./execution.o
 

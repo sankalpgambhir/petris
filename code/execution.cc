@@ -4,6 +4,7 @@
 #include "obj_dir/Vamain_wrapper.h"
 #include <chrono>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <tuple>
 // we'll clean up includes later
 
@@ -16,6 +17,10 @@
 #define INTSCALE 20
 #define OFFSETX 200
 #define OFFSETY 35
+#define TEXT_X 40
+#define TEXT_Y 200
+#define TEXT_W 200
+#define TEXT_H 50
 
 vluint64_t main_time = 0; // simulation time
 
@@ -27,7 +32,8 @@ double sc_time_stamp(void){
 // function prototypes
 void init_frame(SDL_Renderer**, SDL_Window**, SDL_Texture**);
 int update_frame(SDL_Renderer**, SDL_Texture**, Uint32*);
-void clean_frame(SDL_Renderer**, SDL_Window**, SDL_Texture**);
+int update_text(SDL_Renderer*, SDL_Texture*, SDL_Surface*, TTF_Font*, SDL_Rect*, SDL_Color*, const char*);
+void clean_frame(SDL_Renderer**, SDL_Window**, SDL_Texture**, SDL_Surface*, SDL_Texture*);
 
 int check_event(const Uint8*);
 
@@ -58,6 +64,20 @@ int main(int argc, char* argv[]){
     Uint32 pixel_matrix[10*INTSCALE][20*INTSCALE];
     Uint32 pixel_array [num_pix];
     int count_x = 0, count_y = 0;
+
+    // for text
+    SDL_Rect rect;
+    rect.x = TEXT_X;
+    rect.y = TEXT_Y;
+    rect.w = TEXT_W;
+    rect.h = TEXT_H;
+    TTF_Init();
+    TTF_Font* font = TTF_OpenFont("font/uni.ttf", 10);
+    SDL_Color text_color = {.r = 255, .g = 255, .b = 255};
+    SDL_Texture* text_box_texture;
+    SDL_Surface* text_surface;
+    char text[100];
+
 
     SDL_Event e;
     int actions = 0;
@@ -116,6 +136,22 @@ int main(int argc, char* argv[]){
                 printf("Couldn't update frame! %s", SDL_GetError());
                 break;
             }
+            
+            // update score
+            sprintf(text, "PETRIS SCORE: %d", 0); // add actual score here
+            
+            if(update_text(renderer, 
+                            text_box_texture,
+                            text_surface,
+                            font, 
+                            &rect,
+                            &text_color,
+                            text)){
+                printf("Couldn't update frame text! %s", SDL_GetError());
+                break;
+            }
+
+            SDL_RenderPresent(renderer);
 
         }
 
@@ -133,7 +169,7 @@ int main(int argc, char* argv[]){
 
     // simulation finishes, clean up
     wrapper->final();
-    clean_frame(&renderer, &window, &texture);
+    clean_frame(&renderer, &window, &texture, text_surface, text_box_texture);
     delete wrapper, renderer, window, texture;
 
     return 0;
@@ -156,16 +192,38 @@ void init_frame(SDL_Renderer** renderer, SDL_Window** window, SDL_Texture** text
 int update_frame(SDL_Renderer** renderer, SDL_Texture** texture, Uint32 pixel_array[]){
     int pitch = WIDTH * sizeof(Uint32);
     SDL_UpdateTexture(*texture, nullptr, pixel_array, pitch);
+    //SDL_LockTexture(*texture, nullptr, (void**) &pixel_array, &pitch);
+    //SDL_UnlockTexture(*texture);
 
     SDL_RenderClear(*renderer);
     SDL_RenderCopy(*renderer, *texture, nullptr, nullptr);
-    SDL_RenderPresent(*renderer);
 
     return 0;
 }
 
-void clean_frame(SDL_Renderer** renderer, SDL_Window** window, SDL_Texture** texture){
+int update_text(SDL_Renderer* renderer,
+                SDL_Texture* texture, 
+                SDL_Surface* surface, 
+                TTF_Font* font, 
+                SDL_Rect* rect,
+                SDL_Color* text_color, 
+                const char* spool){
+    surface = TTF_RenderText_Solid(font, spool, *text_color);
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_RenderCopy(renderer, texture, nullptr, rect);
+
+    return 0;
+}
+
+void clean_frame(SDL_Renderer** renderer, 
+                 SDL_Window** window, 
+                 SDL_Texture** texture,
+                 SDL_Surface* surface,
+                 SDL_Texture* text_box_texture){
+    TTF_Quit();
     SDL_DestroyTexture(*texture);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(text_box_texture);
     SDL_DestroyWindow(*window);
     SDL_DestroyRenderer(*renderer);
     SDL_Quit();
