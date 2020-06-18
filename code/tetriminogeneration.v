@@ -22,13 +22,17 @@ parameter T=3'b110;
 parameter stop = 0;
 parameter start = 1;
 parameter standby = 6;
-parameter generater = 2;
+parameter generator = 2;
 parameter testfalldown = 3;
 parameter testgameover = 4;
 parameter rowdeletion = 5;
 parameter testleft = 7;
 parameter testright = 8;
 parameter update = 9;
+
+// ==================
+parameter tetrimino = 3'b111;
+parameter testrotate = 1'b1;
 
 
 //Frame buffering to be done later
@@ -60,7 +64,7 @@ always @(posedge vsync) begin
             end
         end
 
-        generater : begin //tetrimino = hash(frame_value)
+        generator : begin //tetrimino = hash(frame_value)
             centerofmass[1][0] <= 0;
             centerofmass[0][0] <= 5; //The block that acts as CM, doesn't change on rotation
         
@@ -126,6 +130,16 @@ always @(posedge vsync) begin
             centerofmass[0][3] <= 5;
             centerofmass[1][3] <= 1;
             end
+
+            default: begin // bullshit test block
+            centerofmass[0][1] <= 0;
+            centerofmass[1][1] <= 0;
+            centerofmass[0][2] <= 0;
+            centerofmass[1][2] <= 0;
+            centerofmass[0][3] <= 0;
+            centerofmass[1][3] <= 0;
+            end
+
             endcase
             state <= update; //Update the frame with the new tetrimino
         end
@@ -192,7 +206,7 @@ always @(posedge vsync) begin
             end
         end
 
-        state <= generater;
+        state <= generator;
     end
 
     testleft : begin
@@ -231,7 +245,7 @@ always @(posedge vsync) begin
            end
 
    end
-   testrot : begin
+   testrotate : begin
        for(i = 1;i<4;i=i+1) begin
            tempcoords[0][j] <= centerofmass[1][j] - centerofmass[1][0]+centerofmass[0][0]; //90 deg rot about coordinates of CM
            tempcoords[1][j] <= centerofmass[0][0] + centerofmass[1][0] - centerofmass[0][j];
@@ -277,25 +291,26 @@ function invalid (input reg [4:0] currentcoords[0:1][0:3], input reg[4:0] newcma
     
 endfunction
 
-function currentstatecheck( input reg bstate [0:9][0:19],
-input reg [4:0] currentcoords [0:1][0:3],
-input reg [4:0] newcoords [0:1][0:3] );
+function currentstatecheck;
+    input reg bstate [0:9][0:19];
+    input reg [4:0] currentcoords [0:1][0:3];
+    input reg [4:0] newcoords [0:1][0:3];
     //Erase the currently stored tetrimino And check whether the positions of the new tetrimino are occupied. 
-    currentstatecheck = 0; 
+    //currentstatecheck = 0; 
     integer i;
     for(i = 0;i<4;i=i+1) begin
         bstate[currentcoords[0][i]][currentcoords[1][i]] = bstate[currentcoords[0][i]][currentcoords[1][i]]-1;
     end
 
     for(i = 0;i<4;i=i+1) begin
-        if(bstate[newcoords[0][i]][newcoords[1][i]==1) begin
+        if(bstate[newcoords[0][i]][newcoords[1][i]]==1) begin
             currentstatecheck = 1;
         end
     end 
 endfunction
 
 function boundarycheck (input [4:0] coordinatearr [0:1][0:3]);
-boundarycheck = 0;
+//boundarycheck = 0;
 integer i;
 for(i=0;i<4;i=i+1) begin
     if(coordinatearr[0][i] > 10) begin //if it goes to the left, reg will cycle to 32. Right is obvious
