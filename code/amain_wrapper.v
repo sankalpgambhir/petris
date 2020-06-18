@@ -4,7 +4,7 @@
 
 module amain_wrapper(
     input clock,
-    input reg [2:0] actions,
+    input reg [3:0] actions,
     output vsync,
     output hsync,
     output in_display,
@@ -56,7 +56,7 @@ module amain_wrapper(
         .score(score),
         .vsync(vsync),
         .framenumber(fcounter)
-    );
+    ); 
     
     framer framer_inst(vsync, frame_out, frame_buffer);
 
@@ -67,10 +67,10 @@ module amain_wrapper(
 
     always @(posedge clock) begin
         // input testing
-        if(actions[0])
-            $display("right");
-        if(actions[1])
-            $display("left");        
+        //if(actions[0])
+        //    $display("right");
+        //if(actions[1])
+        //    $display("left");        
     end
 
     always @(posedge vsync)begin

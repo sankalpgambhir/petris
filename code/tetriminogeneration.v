@@ -1,4 +1,9 @@
-module tetriminogeneration (input wire [2:0] operation , input wire vsync, input reg [9:0] framenumber, output reg [2:0] currentstate[0:9][0:19], output reg[7:0] score ); 
+module tetriminogeneration (
+    input wire [3:0] operation,  
+    input wire vsync, 
+    input reg [9:0] framenumber, 
+    output reg [2:0] currentstate[0:9][0:19], 
+    output reg[7:0] score ); 
 
 reg [4:0] centerofmass [0:1][0:3]; //[0][i] represents the x coordinates [1][i] represents the y coordinates
 reg [4:0] prevcenterofmass [0:1][0:3];
@@ -286,14 +291,14 @@ endcase
    end
 
 function invalid (input reg [4:0] currentcoords[0:1][0:3], input reg[4:0] newcmass[0:1][0:3],
-    input reg boardstate[0:9][0:19] );
+    input reg [2:0] boardstate[0:9][0:19] );
 
     assign invalid = currentstatecheck(boardstate, currentcoords, newcmass) || boundarycheck(newcmass);
     
 endfunction
 
 function currentstatecheck;
-    input reg bstate [0:9][0:19];
+    input reg [2:0] bstate [0:9][0:19];
     input reg [4:0] currentcoords [0:1][0:3];
     input reg [4:0] newcoords [0:1][0:3];
     //Erase the currently stored tetrimino And check whether the positions of the new tetrimino are occupied. 
