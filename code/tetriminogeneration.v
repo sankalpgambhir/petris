@@ -50,7 +50,7 @@ always @(posedge vsync) begin
             for(i=0;i<2;i=i+1) begin
                 for(j = 0;j<4;j=j+1) begin
                     centerofmass[i][j] <= 0;
-                    prevcenterofmass[i][j] <= 0;
+                    prevcenterofmass[i][j] <=  0;
                 end
             end
 
