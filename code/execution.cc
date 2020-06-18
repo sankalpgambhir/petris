@@ -113,7 +113,7 @@ int main(int argc, char* argv[]){
                     (int) wrapper->vga_b * 0xFF,
                     0xFF // alpha
                 );
-            printf("%d, %d, %d\n", wrapper->vga_r, wrapper->vga_g, wrapper->vga_b);
+            //printf("%d, %d, %d\n", wrapper->vga_r, wrapper->vga_g, wrapper->vga_b);
         }
 
         // update frame
