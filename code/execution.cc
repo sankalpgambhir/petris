@@ -22,7 +22,7 @@
 #define TEXT_W 200
 #define TEXT_H 50
 
-vluint64_t main_time = 1; // simulation time
+vluint64_t main_time = 0; // simulation time
 
 // used by $time
 double sc_time_stamp(void){
