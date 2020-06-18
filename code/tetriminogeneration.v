@@ -1,4 +1,4 @@
-module tetriminogeneration (input wire [2:0] operation , input wire vsync, input reg [9:0] framenumber, output reg currentstate[0:9][0:19], output reg[7:0] score ); 
+module tetriminogeneration (input wire [3:0] operation , input wire vsync, input reg [9:0] framenumber, output reg currentstate[0:9][0:19], output reg[7:0] score ); 
 
 reg [4:0] centerofmass [0:1][0:3]; //[0][i] represents the x coordinates [1][i] represents the y coordinates
 reg [4:0] prevcenterofmass [0:1][0:3];
@@ -31,8 +31,7 @@ parameter testright = 8;
 parameter update = 9;
 
 // ==================
-parameter tetrimino = 3'b111;
-parameter testrotate = 1'b1;
+parameter testrotate = 10;
 
 
 //Frame buffering to be done later
@@ -46,6 +45,8 @@ always @(posedge vsync) begin
 
     case (state) 
         default : begin
+            tetrimino <= 0;
+            prevtetrimino <= 0;
             for(i=0;i<2;i=i+1) begin
                 for(j = 0;j<4;j=j+1) begin
                     centerofmass[i][j] <= 0;
@@ -59,17 +60,18 @@ always @(posedge vsync) begin
                 end
             end
             score <= 0;
-            if (operation == 4) begin //Press some key to start
+            if (operation == start) begin //Press some key to start
                 state <= generator;
             end
         end
 
-        generator : begin //tetrimino = hash(frame_value)
+        generator : begin  //tetrimino = hash(frame_value)
+
             centerofmass[1][0] <= 0;
             centerofmass[0][0] <= 5; //The block that acts as CM, doesn't change on rotation
-        
+            tetrimino = (framenumber) % (prevtetrimino+1);
+            
             case(tetrimino) 
-       
             straight : begin //straight
             centerofmass[0][1] <= 3;
             centerofmass[1][1] <= 0;
@@ -139,7 +141,6 @@ always @(posedge vsync) begin
             centerofmass[0][3] <= 0;
             centerofmass[1][3] <= 0;
             end
-
             endcase
             state <= update; //Update the frame with the new tetrimino
         end
@@ -310,18 +311,18 @@ function currentstatecheck;
 endfunction
 
 function boundarycheck (input [4:0] coordinatearr [0:1][0:3]);
-//boundarycheck = 0;
+reg data = 0;
 integer i;
 for(i=0;i<4;i=i+1) begin
     if(coordinatearr[0][i] > 10) begin //if it goes to the left, reg will cycle to 32. Right is obvious
-        boundarycheck = 1; 
+        data = 1; 
     end
     if(coordinatearr[1][i]>19)begin //If it goes below 0 barrier boundary, reg will cycle to 32. 
-        boundarycheck = 1;
-    end
+        data = 1;
+    end   
 end
+boundarycheck = data;
 endfunction
-
 
 endmodule
 
