@@ -1,15 +1,16 @@
-module tetriminogeneration (input wire [2:0] operation , input wire clk, input reg [9:0] framenumber, output reg currentstate[0:9][0:19], output reg[7:0] score ); 
+module tetriminogeneration (input wire [2:0] operation , input wire vsync, input reg [9:0] framenumber, output reg currentstate[0:9][0:19], output reg[7:0] score ); 
 
 reg [4:0] centerofmass [0:1][0:3]; //[0][i] represents the x coordinates [1][i] represents the y coordinates
 reg [4:0] prevcenterofmass [0:1][0:3];
 reg [4:0] tempcoords [0:1][0:3];
-reg gameover;
+reg[3:0] gameover;
 reg coloumnvalue;
 reg rowvalue;
 reg [3:0] state;
-
+integer i,j,k;
 reg[4:0] gameclk = 0;
-
+reg[2:0] clk = 0;
+wire driver = clk[2];
 parameter straight=3'b000;
 parameter L=3'b001;
 parameter LEn=3'b010;
@@ -30,146 +31,150 @@ parameter testright = 8;
 parameter update = 9;
 
 
+//Frame buffering to be done later
+//always @( posedge vsync) begin
+  //  clk <= clk+1;
+  //  gameclk <= gameclk +1;
+//end
 
-always @( posedge clk) begin
-gameclk <= gameclk+1;
+always @(posedge vsync) begin
+     gameclk <= gameclk +1;
 
-
-case (state) 
-    default : begin
-        for(i=0;i<2;i=i+1) begin
-            for(j = 0;j<4;j=j+1) begin
-                centerofmass[i][j] <= 0;
-                prevcenterofmass[i][j] <= 0;
-            end
-        end
-
-        for (i=0; i<10; i=i+1) begin //Assign the gameboard = 0;
-            for (j = 0; j<20; j=j+1) begin
-                currentstate[i][j] <= 0;
-            end
-        end
-        score <= 0;
-        if (operation == 4) begin
-            state <= generator;
-        end
-    end
-
-    generater : begin //tetrimino = hash(frame_value)
-        centerofmass[1][0] <= 0;
-        centerofmass[0][0] <= 5;
-        
-        case(tetrimino) 
-       
-        straight : begin //straight
-        centerofmass[0][1] <= 3;
-        centerofmass[1][1] <= 0;
-        centerofmass[0][2] <= 4;
-        centerofmass[1][2] <= 0;
-        centerofmass[0][3] <= 6;
-        centerofmass[1][3] <= 0;
-        end
-        L : begin   //L-Shaped 
-        centerofmass[0][1] <= 4;
-        centerofmass[1][1] <= 1;
-        centerofmass[0][2] <= 4;
-        centerofmass[1][2] <= 0;
-        centerofmass[0][3] <= 6;
-        centerofmass[1][3] <= 0;
-
-        end
-        LEn : begin // L-Shaped Enantiomer
-        centerofmass[0][1] <= 4;
-        centerofmass[1][1] <= 0;
-        centerofmass[0][2] <= 6;
-        centerofmass[1][2] <= 0;
-        centerofmass[0][3] <= 6;
-        centerofmass[1][3] <= 1;
-        end
-
-        Skew : begin //Skew
-        centerofmass[0][1] <= 4;
-        centerofmass[1][1] <= 0;
-        centerofmass[0][2] <= 5;
-        centerofmass[1][2] <= 1;
-        centerofmass[0][3] <= 6;
-        centerofmass[1][3] <= 1;
-        end
-
-        SkewEn: begin //Skew Enantiomer
-        centerofmass[0][1] <= 6;
-        centerofmass[1][1] <= 0;
-        centerofmass[0][2] <= 5;
-        centerofmass[1][2] <= 1;
-        centerofmass[0][3] <= 4;
-        centerofmass[1][3] <= 1;
-        end
-        Block : begin //Block
-        centerofmass[0][1] <= 6;
-        centerofmass[1][1] <= 0;
-        centerofmass[0][2] <= 5;
-        centerofmass[1][2] <= 1;
-        centerofmass[0][3] <= 6;
-        centerofmass[1][3] <= 1;
-        end
-
-        T : begin //T-Block
-        centerofmass[0][1] <= 4;
-        centerofmass[1][1] <= 0;
-        centerofmass[0][2] <= 6;
-        centerofmass[1][2] <= 0;
-        centerofmass[0][3] <= 5;
-        centerofmass[1][3] <= 1;
-        end
-        endcase
-        state <= update;
-    end
-   standby : begin
-        if( gameclk == 8 or operation == 5 ) begin
-           state <= testfalldown;
-        end
-        if(operation == 1) begin
-           state <= testleft;
-        end
-        if(operation == 2) begin
-           state <= testright;
-        end
-        if(operation == 3) begin
-           state <= testrotate; 
-        end
-end
-
-   testfalldown : begin
-       for(i = 0;i<4;i=i+1) begin
-           tempcoords[0][j] <= centerofmass[0][j];
-           tempcoords[1][j] <= centerofmass[1][j]+1;
-       end
-        if(~invalid(centerofmass,tempcoords,currentstate)) begin
-            for(i = 0;i<2;i=i+1) begin
-                for(j=0;j<4;j=j+1) begin
-                    centerofmass[i][j] <= tempcoords[i][j];
+    case (state) 
+        default : begin
+            for(i=0;i<2;i=i+1) begin
+                for(j = 0;j<4;j=j+1) begin
+                    centerofmass[i][j] <= 0;
+                    prevcenterofmass[i][j] <= 0;
                 end
             end
-            state<=update;
+
+            for (i=0; i<10; i=i+1) begin //Assign the gameboard = 0;
+                for (j = 0; j<20; j=j+1) begin
+                    currentstate[i][j] <= 0;
+                end
+            end
+            score <= 0;
+            if (operation == 4) begin //Press some key to start
+                state <= generator;
+            end
+        end
+
+        generater : begin //tetrimino = hash(frame_value)
+            centerofmass[1][0] <= 0;
+            centerofmass[0][0] <= 5; //The block that acts as CM, doesn't change on rotation
+        
+            case(tetrimino) 
+       
+            straight : begin //straight
+            centerofmass[0][1] <= 3;
+            centerofmass[1][1] <= 0;
+            centerofmass[0][2] <= 4;
+            centerofmass[1][2] <= 0;
+            centerofmass[0][3] <= 6;
+            centerofmass[1][3] <= 0;
+            end
+            L : begin   //L-Shaped 
+            centerofmass[0][1] <= 4;
+            centerofmass[1][1] <= 1;
+            centerofmass[0][2] <= 4;
+            centerofmass[1][2] <= 0;
+            centerofmass[0][3] <= 6;
+            centerofmass[1][3] <= 0;
+            end
+
+            LEn : begin // L-Shaped Enantiomer
+            centerofmass[0][1] <= 4;
+            centerofmass[1][1] <= 0;
+            centerofmass[0][2] <= 6;
+            centerofmass[1][2] <= 0;
+            centerofmass[0][3] <= 6;
+            centerofmass[1][3] <= 1;
+            end
+
+            Skew : begin //Skew
+            centerofmass[0][1] <= 4;
+            centerofmass[1][1] <= 0;
+            centerofmass[0][2] <= 5;
+            centerofmass[1][2] <= 1;
+            centerofmass[0][3] <= 6;
+            centerofmass[1][3] <= 1;
+            end
+
+            SkewEn: begin //Skew Enantiomer
+            centerofmass[0][1] <= 6;
+            centerofmass[1][1] <= 0;
+            centerofmass[0][2] <= 5;
+            centerofmass[1][2] <= 1;
+            centerofmass[0][3] <= 4;
+            centerofmass[1][3] <= 1;
+            end
+            Block : begin //Block
+            centerofmass[0][1] <= 6;
+            centerofmass[1][1] <= 0;
+            centerofmass[0][2] <= 5;
+            centerofmass[1][2] <= 1;
+            centerofmass[0][3] <= 6;
+            centerofmass[1][3] <= 1;
+            end
+
+            T : begin //T-Block
+            centerofmass[0][1] <= 4;
+            centerofmass[1][1] <= 0;
+            centerofmass[0][2] <= 6;
+            centerofmass[1][2] <= 0;
+            centerofmass[0][3] <= 5;
+            centerofmass[1][3] <= 1;
+            end
+            endcase
+            state <= update; //Update the frame with the new tetrimino
+        end
+        standby : begin
+            if( clk == 8 || operation == 5 ) begin
+            state <= testfalldown;
+            end
+            if(operation == 1) begin
+            state <= testleft;
+            end
+            if(operation == 2) begin
+            state <= testright;
+            end
+            if(operation == 3) begin
+            state <= testrotate; 
+            end
+        end
+
+        testfalldown : begin
+            for(i = 0;i<4;i=i+1) begin
+                tempcoords[0][j] <= centerofmass[0][j];
+                tempcoords[1][j] <= centerofmass[1][j]+1;
+            end
+            if(~invalid(centerofmass,tempcoords,currentstate)) begin
+                for(i = 0;i<2;i=i+1) begin
+                    for(j=0;j<4;j=j+1) begin                       //Make currentcoordinates correct
+                        centerofmass[i][j] <= tempcoords[i][j];
+                    end
+                end
+                state<=update;
             end
         else begin
                state <= testgameover;
            end
    end
-   testgameover: begin
+   testgameover : begin
        gameover = 0; 
     
-       for(i=0; i<10; i=i+1) begin
-            gameover = gameover or currentstate[i][0]; //If any of the top y coordinates are 1, you get gameover
+        for(i=0; i<10; i=i+1) begin 
+            gameover = gameover + currentstate[i][0]; //If any of the top y coordinates are 1, you get gameover
            end
        
-       if(gameover) begin
+        if(gameover != 0) begin
            state <= 15; //Goback to default state
-       end
-       else begin
+        end
+        else begin
            state <= rowdeletion;
-       end
-   end
+        end
+    end
 
    rowdeletion: begin
        rowvalue = 1;
@@ -182,38 +187,38 @@ end
                for(j = 0;j<10;j=j+1) begin
                    for(k = i;k>0;k=k-1) begin
                        currentstate[j][k] <= currentstate[j][k-1];
-                   end
-               end
-           end
-       end
+                    end
+                end
+            end
+        end
 
-        state<= generater
+        state <= generater;
     end
 
-   testleft : begin
+    testleft : begin
         for(i = 0;i<4;i=i+1) begin
-           tempcoords[0][j] <= centerofmass[0][j] -1;
-           tempcoords[1][j] <= centerofmass[1][j];
-       end
-        if(~invalid(centerofmass,tempcoords,currentstate)) begin
+           tempcoords[0][i] <= centerofmass[0][i] -1;
+           tempcoords[1][i] <= centerofmass[1][i];
+        end
+        if(!invalid(centerofmass,tempcoords,currentstate)) begin
             for(i = 0;i<2;i=i+1) begin
                 for(j=0;j<4;j=j+1) begin
                     centerofmass[i][j] <= tempcoords[i][j];
                 end
             end
-            state<=update;
+            state <= update;
             end
         else begin
                state <= standby;
            end
 
-   end
-   testright : begin
-       for(i = 0;i<4;i=i+1) begin
+    end
+    testright : begin
+        for(i = 0;i<4;i=i+1) begin
            tempcoords[0][j] <= centerofmass[0][j] +1;
            tempcoords[1][j] <= centerofmass[1][j];
-       end
-        if(~invalid(centerofmass,tempcoords,currentstate)) begin
+        end
+        if(!invalid(centerofmass,tempcoords,currentstate)) begin
             for(i = 0;i<2;i=i+1) begin
                 for(j=0;j<4;j=j+1) begin
                     centerofmass[i][j] <= tempcoords[i][j];
@@ -231,7 +236,7 @@ end
            tempcoords[0][j] <= centerofmass[1][j] - centerofmass[1][0]+centerofmass[0][0]; //90 deg rot about coordinates of CM
            tempcoords[1][j] <= centerofmass[0][0] + centerofmass[1][0] - centerofmass[0][j];
        end
-        if(~invalid(centerofmass,tempcoords,currentstate)) begin
+        if(!invalid(centerofmass,tempcoords,currentstate)) begin
             for(i = 0;i<2;i=i+1) begin
                 for(j=0;j<4;j=j+1) begin
                     centerofmass[i][j] <= tempcoords[i][j];
@@ -265,20 +270,19 @@ end
 endcase
    end
 
-function invalid (input reg[4:0] currentcoords[0:1][0:3], input reg[4:0] newcmass[0:1][0:3],
-    input reg boardstate[0:9][0:19],
-    );
+function invalid (input reg [4:0] currentcoords[0:1][0:3], input reg[4:0] newcmass[0:1][0:3],
+    input reg boardstate[0:9][0:19] );
 
-    invalid = currentstatecheck(boardstate, cmass, newcmass) or boundarycheck(newcmass);
+    assign invalid = currentstatecheck(boardstate, currentcoords, newcmass) || boundarycheck(newcmass);
     
 endfunction
 
-function currentstatecheck; //Check if the move is being blocked by the board
-input reg bstate [0:9][0:19];
-input reg [4:0] currentcoords[0:1][0:3];
-input reg [4:0] newcoords[0:1][0:3];
+function currentstatecheck( input reg bstate [0:9][0:19],
+input reg [4:0] currentcoords [0:1][0:3],
+input reg [4:0] newcoords [0:1][0:3] );
     //Erase the currently stored tetrimino And check whether the positions of the new tetrimino are occupied. 
-    currentstatecheck = 0;
+    currentstatecheck = 0; 
+    integer i;
     for(i = 0;i<4;i=i+1) begin
         bstate[currentcoords[0][i]][currentcoords[1][i]] = bstate[currentcoords[0][i]][currentcoords[1][i]]-1;
     end
@@ -290,9 +294,9 @@ input reg [4:0] newcoords[0:1][0:3];
     end 
 endfunction
 
-function boundarycheck; //Check if the move is being blocked by the boundary. 
-input[4:0] coordinatearr [0:1][0:3];
+function boundarycheck (input [4:0] coordinatearr [0:1][0:3]);
 boundarycheck = 0;
+integer i;
 for(i=0;i<4;i=i+1) begin
     if(coordinatearr[0][i] > 10) begin //if it goes to the left, reg will cycle to 32. Right is obvious
         boundarycheck = 1; 
@@ -301,9 +305,8 @@ for(i=0;i<4;i=i+1) begin
         boundarycheck = 1;
     end
 end
-
-
 endfunction
+
 
 endmodule
 
