@@ -138,7 +138,7 @@ int main(int argc, char* argv[]){
             }
             
             // update score
-            sprintf(text, "PETRIS SCORE: %d", 0); // add actual score here
+            sprintf(text, "PETRIS SCORE: %d", wrapper->score); // add actual score here
             
             if(update_text(renderer, 
                             text_box_texture,

@@ -4,7 +4,7 @@
 
 module amain_wrapper(
     input clock,
-    input reg [1:0] actions,
+    input reg [2:0] actions,
     output vsync,
     output hsync,
     output in_display,
@@ -12,7 +12,8 @@ module amain_wrapper(
     output vga_g,
     output vga_b,
     output reg [9:0] count_x,
-    output reg [9:0] count_y
+    output reg [9:0] count_y,
+    output reg [7:0] score
     );
 
     // clock incremented from C++ wrapper
@@ -48,15 +49,15 @@ module amain_wrapper(
     );
 
 
-    /*
+    
     tetriminogeneration tet_inst(
-        .currentstate(prev_state),
+        .currentstate(frame_buffer),
         .operation(actions),
-        .tetrimino(next_piece),
-        .nextstate(frame_buffer),
-        .clock(vsync)
+        .score(score),
+        .vsync(vsync),
+        .framenumber(fcounter)
     );
-    */
+    
     framer framer_inst(vsync, frame_out, frame_buffer);
 
     // temporarily instantiate every module to have only one top module
