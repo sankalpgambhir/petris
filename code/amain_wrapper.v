@@ -55,7 +55,8 @@ module amain_wrapper(
         .operation(actions),
         .score(score),
         .vsync(vsync),
-        .framenumber(fcounter)
+        .framenumber(fcounter),
+        .clock(clock)
     ); 
     
     framer framer_inst(vsync, frame_out, frame_buffer);
@@ -74,8 +75,8 @@ module amain_wrapper(
     end
 
     always @(posedge vsync)begin
-        $display("Frame;");
-        $display(fcounter);
+        //$display("Frame;");
+        //$display(fcounter);
         fcounter = fcounter+1;
     end 
 

@@ -3,7 +3,9 @@ module tetriminogeneration (
     input wire vsync, 
     input reg [9:0] framenumber, 
     output reg [2:0] currentstate[0:9][0:19], 
-    output reg[7:0] score ); 
+    output reg [7:0] score,
+    input clock
+    ); 
 
 reg [4:0] centerofmass [0:1][0:3]; //[0][i] represents the x coordinates [1][i] represents the y coordinates
 reg [4:0] prevcenterofmass [0:1][0:3];
@@ -16,6 +18,8 @@ integer i,j,k;
 reg[4:0] gameclk = 0;
 reg[2:0] clk = 0;
 wire driver = clk[2];
+reg [2:0] tetrimino;
+reg [2:0] prevtetrimino;
 parameter straight=3'b000;
 parameter L=3'b001;
 parameter LEn=3'b010;
@@ -36,7 +40,7 @@ parameter testright = 8;
 parameter update = 9;
 
 // ==================
-parameter testrotate = 10;
+parameter testrotate = 10; 
 
 
 //Frame buffering to be done later
@@ -47,6 +51,9 @@ parameter testrotate = 10;
 
 always @(posedge vsync) begin
      gameclk <= gameclk +1;
+
+     $display("state: ");
+     $display(state);
 
     case (state) 
         default : begin
@@ -74,7 +81,7 @@ always @(posedge vsync) begin
 
             centerofmass[1][0] <= 0;
             centerofmass[0][0] <= 5; //The block that acts as CM, doesn't change on rotation
-            tetrimino = (framenumber) % (prevtetrimino+1);
+            tetrimino <= (framenumber) % (prevtetrimino) + 1;
             
             case(tetrimino) 
             straight : begin //straight

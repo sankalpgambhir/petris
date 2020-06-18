@@ -150,6 +150,7 @@ int main(int argc, char* argv[]){
                 printf("Couldn't update frame text! %s", SDL_GetError());
                 break;
             }
+            std::fflush(NULL);
 
             SDL_RenderPresent(renderer);
 
@@ -246,8 +247,8 @@ int check_event(const Uint8* keys){
 void integer_scale(Uint32 from[10][20], Uint32 to[10*INTSCALE][20*INTSCALE], int scale){
     for(int i = 0; i < 10; i++){
         for(int j = 0; j < 20; j++){
-            for(int k = 0; k < scale; k++){
-                for(int l = 0; l < scale; l++){
+            for(int k = 1; k < scale - 1; k++){
+                for(int l = 1; l < scale - 1; l++){
                     to[i*scale + k][j*scale + l] = from[i][j];
                 }
             }
