@@ -50,10 +50,10 @@ parameter testrotate = 10;
 //end
 
 always @(posedge vsync) begin
-     gameclk <= gameclk +1;
+     gameclk <= gameclk +1 ;
 
-     $display("state: ");
-     $display(state);
+     $display("gameclk: ");
+     $display(gameclk);
 
     case (state) 
         default : begin
@@ -154,7 +154,8 @@ always @(posedge vsync) begin
             centerofmass[1][3] <= 0;
             end
             endcase
-            state <= update; //Update the frame with the new tetrimino
+            update(currentstate, prevcenterofmass, centerofmass,tetrimino); //Update the frame with the new tetrimino
+            state <= standby;
         end
         standby : begin
             if( clk == 8 || operation == 5 ) begin
@@ -176,13 +177,14 @@ always @(posedge vsync) begin
                 tempcoords[0][j] <= centerofmass[0][j];
                 tempcoords[1][j] <= centerofmass[1][j]+1;
             end
-            if(~invalid(centerofmass,tempcoords,currentstate)) begin
+            if(!invalid(centerofmass,tempcoords,currentstate)) begin
                 for(i = 0;i<2;i=i+1) begin
                     for(j=0;j<4;j=j+1) begin                       //Make currentcoordinates correct
                         centerofmass[i][j] <= tempcoords[i][j];
                     end
                 end
-                state<=update;
+            update(currentstate, prevcenterofmass, centerofmass,tetrimino); //Update the frame with the new tetrimino
+            state <= standby;
             end
         else begin
                state <= testgameover;
@@ -192,7 +194,7 @@ always @(posedge vsync) begin
        gameover = 0; 
     
         for(i=0; i<10; i=i+1) begin 
-            gameover = gameover + currentstate[i][0]; //If any of the top y coordinates are 1, you get gameover
+            gameover = gameover || currentstate[i][0]; //If any of the top y coordinates are 1, you get gameover
            end
        
         if(gameover != 0) begin
@@ -207,10 +209,10 @@ always @(posedge vsync) begin
        rowvalue = 1;
        for(i =0;i<20;i=i+1) begin
            for(j = 0;j<10;j=j+1) begin
-               rowvalue = rowvalue*currentstate[i][j];
+               rowvalue = rowvalue && currentstate[i][j];
            end
-           if(rowvalue == 1)begin
-               score <=score +1;
+           if(rowvalue != 0)begin
+               score <= score +1;
                for(j = 0;j<10;j=j+1) begin
                    for(k = i;k>0;k=k-1) begin
                        currentstate[j][k] <= currentstate[j][k-1];
@@ -233,7 +235,8 @@ always @(posedge vsync) begin
                     centerofmass[i][j] <= tempcoords[i][j];
                 end
             end
-            state <= update;
+            update(currentstate, prevcenterofmass, centerofmass,tetrimino); //Update the frame with the new tetrimino
+            state <= standby;
             end
         else begin
                state <= standby;
@@ -251,7 +254,8 @@ always @(posedge vsync) begin
                     centerofmass[i][j] <= tempcoords[i][j];
                 end
             end
-            state<=update;
+            update(currentstate, prevcenterofmass, centerofmass,tetrimino); //Update the frame with the new tetrimino
+            state <= standby;
             end
         else begin
                state <= standby;
@@ -269,29 +273,15 @@ always @(posedge vsync) begin
                     centerofmass[i][j] <= tempcoords[i][j];
                 end
             end
-            state<=update;
+            update(currentstate, prevcenterofmass, centerofmass,tetrimino); //Update the frame with the new tetrimino
+            state <= standby;
             end
         else begin
                state <= standby;
            end
    end
 
-   update : begin
-        for (j = 0;j<4;j=j+1) begin
-            currentstate[prevcenterofmass[0][j]][prevcenterofmass[1][j]] <= 0; //Transform the currentstate to meet valid move
-        end
-         for (j = 0;j<4;j=j+1) begin
-             currentstate[centerofmass[0][j]][centerofmass[1][j]] <= 1; 
-         end
-         for(i=0;i<2;i=i+1) begin
-             for(j=0;j<4;j=j+1) begin
-             prevcenterofmass[i][j] <= centerofmass[i][j];
-             end
-         end
-
-        state <= standby;
-        
-        end 
+  
 
 
 endcase
@@ -312,11 +302,11 @@ function currentstatecheck;
     //currentstatecheck = 0; 
     integer i;
     for(i = 0;i<4;i=i+1) begin
-        bstate[currentcoords[0][i]][currentcoords[1][i]] = bstate[currentcoords[0][i]][currentcoords[1][i]]-1;
+        bstate[currentcoords[0][i]][currentcoords[1][i]] = 0;
     end
 
     for(i = 0;i<4;i=i+1) begin
-        if(bstate[newcoords[0][i]][newcoords[1][i]]==1) begin
+        if(bstate[newcoords[0][i]][newcoords[1][i]]!=0) begin
             currentstatecheck = 1;
         end
     end 
@@ -336,6 +326,22 @@ end
 boundarycheck = data;
 endfunction
 
+task update (inout[1:0] bgstate[0:9][0:19], 
+inout[4:0] currentloc[0:1][0:3],
+inout[4:0] newloc[0:1][0:3], input reg [3:0] tetriminocode);
+for (j = 0;j<4;j=j+1) begin
+            bgstate[currentloc[0][j]][currentloc[1][j]] <= 0; //Transform the currentstate to meet valid move
+        end
+         for (j = 0;j<4;j=j+1) begin
+             bgstate[newloc[0][j]][newloc[1][j]] <= tetriminocode; //Put tetrimino code here; 
+         end
+         for(i=0;i<2;i=i+1) begin
+             for(j=0;j<4;j=j+1) begin
+             currentloc[i][j] <= newloc[i][j];
+             end
+         end
+endtask
+
 endmodule
 
         
@@ -343,6 +349,21 @@ endmodule
 
 
 
+// 
+task update (inout[1:0] bgstate[0:9][0:19], 
+inout[4:0] currentloc[0:1][0:3],
+inout[4:0] newloc[0:1][0:3], input reg [3:0] tetriminocode);
+for (j = 0;j<4;j=j+1) begin
+            bgstate[currentloc[0][j]][currentloc[1][j]] <= 0; //Transform the currentstate to meet valid move
+        end
+         for (j = 0;j<4;j=j+1) begin
+             bgstate[newloc[0][j]][newloc[1][j]] <= tetriminocode; //Put tetrimino code here; 
+         end
+         for(i=0;i<2;i=i+1) begin
+             for(j=0;j<4;j=j+1) begin
+             currentloc[i][j] <= newloc[i][j];
+             end
+         end
 
 
 
