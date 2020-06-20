@@ -27,9 +27,9 @@ module amain_wrapper(
     reg [2:0] pixel;
     reg [10:0] fcounter;
 
-    assign vga_r = pixel[0];
+    assign vga_r = pixel[2];
     assign vga_g = pixel[1];
-    assign vga_b = pixel[2];
+    assign vga_b = pixel[0];
 
     initial begin
         next_piece = 3'b111;

@@ -15,7 +15,7 @@
 #define HPITCH 800
 #define VPITCH 525
 #define INTSCALE 20
-#define OFFSETX 200
+#define OFFSETX 250
 #define OFFSETY 35
 #define TEXT_X 40
 #define TEXT_Y 200
@@ -93,6 +93,18 @@ int main(int argc, char* argv[]){
         }
     }
 
+    // draw playfield border
+    int border_x = OFFSETX - 5;
+    int border_y = OFFSETY - 5;
+    for(int i = 0; i < 10*INTSCALE; i++ ){
+        pixel_array[(i + OFFSETX) + (OFFSETY)*WIDTH];
+        pixel_array[(i + OFFSETX) + (20 + OFFSETY)*WIDTH];
+    }
+    for(int j = 0; j < 20*INTSCALE; j++ ){
+        pixel_array[(OFFSETX) + (j + OFFSETY)*WIDTH] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), 0xFF, 0xFF, 0xFF, 0xFF);
+        pixel_array[(10 + OFFSETX) + (j + OFFSETY)*WIDTH]= SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), 0xFF, 0xFF, 0xFF, 0xFF);
+    }
+
     if (window == nullptr){
         return -1;
     }
@@ -113,30 +125,36 @@ int main(int argc, char* argv[]){
             reduced_matrix[wrapper->count_x][wrapper->count_y] = 
                 SDL_MapRGBA(
                     SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888),
-                    (int) wrapper->vga_r * 0xFF,
-                    (int) wrapper->vga_g * 0xFF,
-                    (int) wrapper->vga_b * 0xFF,
+                    (int) wrapper->vga_r * 0xF4 + 0x0B,
+                    (int) wrapper->vga_g * 0xF4 + 0x0B,
+                    (int) wrapper->vga_b * 0xF4 + 0x0B,
                     0xFF // alpha
                 );
             //printf("%d, %d, %d\n", wrapper->vga_r, wrapper->vga_g, wrapper->vga_b);
         }
 
+
+        // take input and validate
+        SDL_PollEvent(&e);
+
+        if(e.type == SDL_QUIT){
+            break;
+        }
+        else if (e.type == SDL_KEYDOWN){
+            actions = check_event(keys);
+        } // move around with action
+        else{
+            actions = 0;
+        }
+
+        wrapper->actions = actions;
+
         // update frame
         if(!wrapper->vsync){
-            // take input and validate
-            SDL_PollEvent(&e);
 
             integer_scale(reduced_matrix, pixel_matrix, INTSCALE);
             linearize_pixel(pixel_matrix, pixel_array);
-            
-            if(e.type == SDL_QUIT){
-                break;
-            }
-            else if (e.type == SDL_KEYDOWN){
-                actions = check_event(keys);
-            } // move around with action
-
-            wrapper->actions = actions;
+        
             if(update_frame(&renderer, &texture, pixel_array)){
                 printf("Couldn't update frame! %s", SDL_GetError());
                 break;
@@ -240,10 +258,13 @@ void clean_frame(SDL_Renderer** renderer,
 int check_event(const Uint8* keys){
     int actions = 0;
     if (keys[SDL_SCANCODE_LEFT]){
-        actions += 0b0010;
+        actions += 0b00010;
     }
     if (keys[SDL_SCANCODE_RIGHT]){
-        actions += 0b0001;
+        actions += 0b00001;
+    }
+    if (keys[SDL_SCANCODE_DOWN]){
+        actions += 0b00100;
     }
 
     return actions;
