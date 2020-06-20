@@ -101,16 +101,63 @@ function automatic invalid;
     input reg [4:0] positions [0:1] [0:3];
     input reg [4:0] changed_positions [0:1] [0:3];
 
-    // invalid checking code TODO
-    invalid = 0;
+    invalid = currentstatecheck(boardstate, positions, changed_positions) || boundarycheck(changed_positions);
+
+endfunction
+
+function currentstatecheck;
+    input reg [2:0] boardstate [0:9][0:19];
+    input reg [4:0] positions [0:1][0:3];
+    input reg [4:0] changed_positions [0:1][0:3];
+
+    currentstatecheck = 0;
+
+    integer i;
+    for(i = 0; i < 4; i = i + 1) begin
+        boardstate[positions[X][i]][positions[Y][i]] = 0;
+    end
+
+    for(i = 0; i < 4; i = i + 1) begin
+        if(boardstate[changed_positions[X][i]][changed_positions[Y][i]]!=0) begin
+            currentstatecheck = 1;
+        end
+    end
+
+endfunction
+
+function boundarycheck; 
+    input [4:0] changed_positions [0:1][0:3];
+
+    boundarycheck = 0;
+
+    integer i;
+    for(i=0;i<4;i=i+1) begin
+        if(changed_positions[X][i] > 10) begin //if it goes to the left, reg will cycle to 32. Right is obvious
+            boundarycheck = 1; 
+        end
+        if(changed_positions[Y][i]>19) begin //If it goes below 0 barrier boundary, reg will cycle to 32. 
+            boundarycheck = 1;
+        end   
+    end
 
 endfunction
 
 function automatic checkfreeze;
     input reg [2:0] boardstate [0:9] [0:19];
+    input reg [4:0] positions [0:1][0:3];
 
-    // freeze checking code TODO
     checkfreeze = 0;
+
+    integer i;
+    for(i = 0; i < 4; i = i + 1) begin
+        boardstate[positions[X][i]][positions[Y][i]] = 0;
+    end
+
+    for(i = 0; i < 4; i = i + 1) begin
+        if(boardstate[positions[X][i]][positions[Y][i] + 1]) begin
+            checkfreeze = 1;
+        end
+    end
 
 endfunction
 
