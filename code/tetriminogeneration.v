@@ -1,5 +1,5 @@
 module tetriminogeneration (
-    input wire [3:0] operation,  
+    input wire [4:0] operation,  
     input wire vsync, 
     input reg [9:0] framenumber, 
     output reg [2:0] currentstate[0:9][0:19], 
@@ -8,369 +8,228 @@ module tetriminogeneration (
     ); 
 
 reg [4:0] centerofmass [0:1][0:3]; //[0][i] represents the x coordinates [1][i] represents the y coordinates
-reg [4:0] prevcenterofmass [0:1][0:3];
-reg [4:0] tempcoords [0:1][0:3];
-reg[3:0] gameover;
-reg coloumnvalue;
-reg rowvalue;
-reg [3:0] state;
-integer i,j,k;
-reg[4:0] gameclk = 0;
-reg[2:0] clk = 0;
-wire driver = clk[2];
-reg [2:0] tetrimino;
-reg [2:0] prevtetrimino;
-parameter straight=3'b000;
-parameter L=3'b001;
-parameter LEn=3'b010;
-parameter Skew = 3'b011;
-parameter SkewEn=3'b100;
-parameter Block=3'b101;
-parameter T=3'b110;
 
-parameter stop = 0;
-parameter start = 1;
-parameter standby = 6;
-parameter generator = 2;
-parameter testfalldown = 3;
-parameter testgameover = 4;
-parameter rowdeletion = 5;
-parameter testleft = 7;
-parameter testright = 8;
-parameter update = 9;
+// directional identifiers
+localparam X = 0;
+localparam Y = 0;
 
-// ==================
-parameter testrotate = 10; 
+// input identifiers
+localparam RIGHT = 0;
+localparam LEFT = 1;
+localparam DOWN = 2;
+localparam ROTATE = 3;
+localparam START = 4;
 
 
-//Frame buffering to be done later
-//always @( posedge vsync) begin
-  //  clk <= clk+1;
-  //  gameclk <= gameclk +1;
-//end
+// provide a gameclk, slowed down
+// multiplier can be adjust to control speed
+wire gaemclk;
+reg [2:0] multiplier = 3;
+reg [2:0] counter;
 
-always @(posedge vsync) begin
-     gameclk <= gameclk +1 ;
+always @(negedge vsync)begin
+    counter <= counter + 1;
+    if (counter == multiplier) begin
+        counter <= 0;
+        gameclk <= ~gameclk;
+    end
+end
+
+always @(posedge gameclk) begin 
 
      $display("gameclk: ");
      $display(gameclk);
+     $display(operation);
+     $display(state);
 
-    case (state) 
-        default : begin
-            tetrimino <= 0;
-            prevtetrimino <= 0;
-            for(i=0;i<2;i=i+1) begin
-                for(j = 0;j<4;j=j+1) begin
-                    centerofmass[i][j] <= 0;
-                    prevcenterofmass[i][j] <=  0;
-                end
-            end
+    // checks and goes down
+    movedown(currentstate, centerofmass);
+    // checks if frozen
+    frozen <= checkfreeze(currentstate, centerofmass);
 
-            for (i=0; i<10; i=i+1) begin //Assign the gameboard = 0;
-                for (j = 0; j<20; j=j+1) begin
-                    currentstate[i][j] <= 0;
-                end
-            end
-            score <= 0;
-            if (operation == start) begin //Press some key to start
-                state <= generator;
-            end
-        end
+    if(frozen) begin
+        // generate new piece TODO
 
-        generator : begin  //tetrimino = hash(frame_value)
-
-            centerofmass[1][0] <= 0;
-            centerofmass[0][0] <= 5; //The block that acts as CM, doesn't change on rotation
-            tetrimino <= (framenumber) % (prevtetrimino) + 1;
-            
-            case(tetrimino) 
-            straight : begin //straight
-            centerofmass[0][1] <= 3;
-            centerofmass[1][1] <= 0;
-            centerofmass[0][2] <= 4;
-            centerofmass[1][2] <= 0;
-            centerofmass[0][3] <= 6;
-            centerofmass[1][3] <= 0;
-            end
-            L : begin   //L-Shaped 
-            centerofmass[0][1] <= 4;
-            centerofmass[1][1] <= 1;
-            centerofmass[0][2] <= 4;
-            centerofmass[1][2] <= 0;
-            centerofmass[0][3] <= 6;
-            centerofmass[1][3] <= 0;
-            end
-
-            LEn : begin // L-Shaped Enantiomer
-            centerofmass[0][1] <= 4;
-            centerofmass[1][1] <= 0;
-            centerofmass[0][2] <= 6;
-            centerofmass[1][2] <= 0;
-            centerofmass[0][3] <= 6;
-            centerofmass[1][3] <= 1;
-            end
-
-            Skew : begin //Skew
-            centerofmass[0][1] <= 4;
-            centerofmass[1][1] <= 0;
-            centerofmass[0][2] <= 5;
-            centerofmass[1][2] <= 1;
-            centerofmass[0][3] <= 6;
-            centerofmass[1][3] <= 1;
-            end
-
-            SkewEn: begin //Skew Enantiomer
-            centerofmass[0][1] <= 6;
-            centerofmass[1][1] <= 0;
-            centerofmass[0][2] <= 5;
-            centerofmass[1][2] <= 1;
-            centerofmass[0][3] <= 4;
-            centerofmass[1][3] <= 1;
-            end
-            Block : begin //Block
-            centerofmass[0][1] <= 6;
-            centerofmass[1][1] <= 0;
-            centerofmass[0][2] <= 5;
-            centerofmass[1][2] <= 1;
-            centerofmass[0][3] <= 6;
-            centerofmass[1][3] <= 1;
-            end
-
-            T : begin //T-Block
-            centerofmass[0][1] <= 4;
-            centerofmass[1][1] <= 0;
-            centerofmass[0][2] <= 6;
-            centerofmass[1][2] <= 0;
-            centerofmass[0][3] <= 5;
-            centerofmass[1][3] <= 1;
-            end
-
-            default: begin // bullshit test block
-            centerofmass[0][1] <= 0;
-            centerofmass[1][1] <= 0;
-            centerofmass[0][2] <= 0;
-            centerofmass[1][2] <= 0;
-            centerofmass[0][3] <= 0;
-            centerofmass[1][3] <= 0;
-            end
-            endcase
-            update(currentstate, prevcenterofmass, centerofmass,tetrimino); //Update the frame with the new tetrimino
-            state <= standby;
-        end
-        standby : begin
-            if( clk == 8 || operation == 5 ) begin
-            state <= testfalldown;
-            end
-            if(operation == 1) begin
-            state <= testleft;
-            end
-            if(operation == 2) begin
-            state <= testright;
-            end
-            if(operation == 3) begin
-            state <= testrotate; 
-            end
-        end
-
-        testfalldown : begin
-            for(i = 0;i<4;i=i+1) begin
-                tempcoords[0][j] <= centerofmass[0][j];
-                tempcoords[1][j] <= centerofmass[1][j]+1;
-            end
-            if(!invalid(centerofmass,tempcoords,currentstate)) begin
-                for(i = 0;i<2;i=i+1) begin
-                    for(j=0;j<4;j=j+1) begin                       //Make currentcoordinates correct
-                        centerofmass[i][j] <= tempcoords[i][j];
-                    end
-                end
-            update(currentstate, prevcenterofmass, centerofmass,tetrimino); //Update the frame with the new tetrimino
-            state <= standby;
-            end
-        else begin
-               state <= testgameover;
-           end
-   end
-   testgameover : begin
-       gameover = 0; 
-    
-        for(i=0; i<10; i=i+1) begin 
-            gameover = gameover || currentstate[i][0]; //If any of the top y coordinates are 1, you get gameover
-           end
-       
-        if(gameover != 0) begin
-           state <= 15; //Goback to default state
-        end
-        else begin
-           state <= rowdeletion;
-        end
+        frozen <= 0;
     end
 
-   rowdeletion: begin
-       rowvalue = 1;
-       for(i =0;i<20;i=i+1) begin
-           for(j = 0;j<10;j=j+1) begin
-               rowvalue = rowvalue && currentstate[i][j];
-           end
-           if(rowvalue != 0)begin
-               score <= score +1;
-               for(j = 0;j<10;j=j+1) begin
-                   for(k = i;k>0;k=k-1) begin
-                       currentstate[j][k] <= currentstate[j][k-1];
-                    end
-                end
-            end
-        end
-
-        state <= generator;
-    end
-
-    testleft : begin
-        for(i = 0;i<4;i=i+1) begin
-           tempcoords[0][i] <= centerofmass[0][i] -1;
-           tempcoords[1][i] <= centerofmass[1][i];
-        end
-        if(!invalid(centerofmass,tempcoords,currentstate)) begin
-            for(i = 0;i<2;i=i+1) begin
-                for(j=0;j<4;j=j+1) begin
-                    centerofmass[i][j] <= tempcoords[i][j];
-                end
-            end
-            update(currentstate, prevcenterofmass, centerofmass,tetrimino); //Update the frame with the new tetrimino
-            state <= standby;
-            end
-        else begin
-               state <= standby;
-           end
-
-    end
-    testright : begin
-        for(i = 0;i<4;i=i+1) begin
-           tempcoords[0][j] <= centerofmass[0][j] +1;
-           tempcoords[1][j] <= centerofmass[1][j];
-        end
-        if(!invalid(centerofmass,tempcoords,currentstate)) begin
-            for(i = 0;i<2;i=i+1) begin
-                for(j=0;j<4;j=j+1) begin
-                    centerofmass[i][j] <= tempcoords[i][j];
-                end
-            end
-            update(currentstate, prevcenterofmass, centerofmass,tetrimino); //Update the frame with the new tetrimino
-            state <= standby;
-            end
-        else begin
-               state <= standby;
-           end
-
-   end
-   testrotate : begin
-       for(i = 1;i<4;i=i+1) begin
-           tempcoords[0][j] <= centerofmass[1][j] - centerofmass[1][0]+centerofmass[0][0]; //90 deg rot about coordinates of CM
-           tempcoords[1][j] <= centerofmass[0][0] + centerofmass[1][0] - centerofmass[0][j];
-       end
-        if(!invalid(centerofmass,tempcoords,currentstate)) begin
-            for(i = 0;i<2;i=i+1) begin
-                for(j=0;j<4;j=j+1) begin
-                    centerofmass[i][j] <= tempcoords[i][j];
-                end
-            end
-            update(currentstate, prevcenterofmass, centerofmass,tetrimino); //Update the frame with the new tetrimino
-            state <= standby;
-            end
-        else begin
-               state <= standby;
-           end
-   end
-
-  
-
-
-endcase
-   end
-
-function invalid (input reg [4:0] currentcoords[0:1][0:3], input reg[4:0] newcmass[0:1][0:3],
-    input reg [2:0] boardstate[0:9][0:19] );
-
-    assign invalid = currentstatecheck(boardstate, currentcoords, newcmass) || boundarycheck(newcmass);
-    
-endfunction
-
-function currentstatecheck;
-    input reg [2:0] bstate [0:9][0:19];
-    input reg [4:0] currentcoords [0:1][0:3];
-    input reg [4:0] newcoords [0:1][0:3];
-    //Erase the currently stored tetrimino And check whether the positions of the new tetrimino are occupied. 
-    //currentstatecheck = 0; 
-    integer i;
-    for(i = 0;i<4;i=i+1) begin
-        bstate[currentcoords[0][i]][currentcoords[1][i]] = 0;
-    end
-
-    for(i = 0;i<4;i=i+1) begin
-        if(bstate[newcoords[0][i]][newcoords[1][i]]!=0) begin
-            currentstatecheck = 1;
-        end
-    end 
-endfunction
-
-function boundarycheck (input [4:0] coordinatearr [0:1][0:3]);
-reg data = 0;
-integer i;
-for(i=0;i<4;i=i+1) begin
-    if(coordinatearr[0][i] > 10) begin //if it goes to the left, reg will cycle to 32. Right is obvious
-        data = 1; 
-    end
-    if(coordinatearr[1][i]>19)begin //If it goes below 0 barrier boundary, reg will cycle to 32. 
-        data = 1;
-    end   
 end
-boundarycheck = data;
-endfunction
 
-task update (inout[1:0] bgstate[0:9][0:19], 
-inout[4:0] currentloc[0:1][0:3],
-inout[4:0] newloc[0:1][0:3], input reg [3:0] tetriminocode);
-for (j = 0;j<4;j=j+1) begin
-            bgstate[currentloc[0][j]][currentloc[1][j]] <= 0; //Transform the currentstate to meet valid move
+always @(negedge vsync) begin
+
+    // code for starting? TODO
+
+    // check if input provided
+    if(operation) begin
+        // check validity, move accordingly
+
+        // if down move down
+        if(operation[DOWN]) begin
+            // check
+            // move down
+            movedown(currentstate, centerofmass);
         end
-         for (j = 0;j<4;j=j+1) begin
-             bgstate[newloc[0][j]][newloc[1][j]] <= tetriminocode; //Put tetrimino code here; 
-         end
-         for(i=0;i<2;i=i+1) begin
-             for(j=0;j<4;j=j+1) begin
-             currentloc[i][j] <= newloc[i][j];
-             end
-         end
-endtask
+
+        // if left or right, move there
+        if(operation[LEFT] || operation[RIGHT]) begin
+            if(~operation[LEFT]) begin
+                // check and move right
+                moveright(currentstate, centerofmass);
+            end
+            else if(~operation[RIGHT]) begin
+                // check and move left
+                moveleft(currentstate, centerofmass);
+            end
+        end
+
+        // if rotate, rotate the piece
+        if(operation[ROTATE]) begin
+            // check and rotate
+            rotate(currentstate, centerofmass);
+        end
+
+    end
+
+    // updates frame TODO
+
+end
 
 endmodule
 
+function automatic invalid;
+    input reg [2:0] boardstate [0:9] [0:19];
+    input reg [4:0] positions [0:1] [0:3];
+    input reg [4:0] changed_positions [0:1] [0:3];
+
+    // invalid checking code TODO
+    invalid = 0;
+
+endfunction
+
+function automatic checkfreeze;
+    input reg [2:0] boardstate [0:9] [0:19];
+
+    // freeze checking code TODO
+    checkfreeze = 0;
+
+endfunction
+
+task automatic movedown(
+        inout reg [2:0] boardstate [0:9] [0:19],
+        inout reg [4:0] positions [0:1] [0:3]
+    );
+
+    reg [4:0] changed_positions [0:1] [0:3];
+    reg [2:0] current_tetrimino;
+
+    integer i, j;
+
+    for(i = 0; i < 2; i <= i + 1) begin
+        for(j = 0; j < 4; j <= j + 1) begin
+            changed_positions[i][j] = (i == Y) ? positions[i][j] + 1 : positions[i][j];
+        end 
+    end
+
+    if(~invalid(boardstate, positions, changed_positions)) begin
         
-        
+        current_tetrimino = boardstate[positions[X][0]][positions[Y][0]];
 
-
-
-// 
-task update (inout[1:0] bgstate[0:9][0:19], 
-inout[4:0] currentloc[0:1][0:3],
-inout[4:0] newloc[0:1][0:3], input reg [3:0] tetriminocode);
-for (j = 0;j<4;j=j+1) begin
-            bgstate[currentloc[0][j]][currentloc[1][j]] <= 0; //Transform the currentstate to meet valid move
+        for(i = 0; i < 4; i <= i + 1) begin
+            boardstate[positions[X][i]][positions[Y][i]] = BLANK;
+            boardstate[changed_positions[X][i]][changed_positions[Y][i]] = current_tetrimino;
         end
-         for (j = 0;j<4;j=j+1) begin
-             bgstate[newloc[0][j]][newloc[1][j]] <= tetriminocode; //Put tetrimino code here; 
-         end
-         for(i=0;i<2;i=i+1) begin
-             for(j=0;j<4;j=j+1) begin
-             currentloc[i][j] <= newloc[i][j];
-             end
-         end
 
+        positions <= changed_positions;
+    end
 
+endtask
 
+task automatic moveright(
+        inout reg [2:0] boardstate [0:9] [0:19],
+        inout reg [4:0] positions [0:1] [0:3]
+    );
 
+    reg [4:0] changed_positions [0:1] [0:3];
+    reg [2:0] current_tetrimino;
 
+    integer i, j;
 
+    for(i = 0; i < 2; i <= i + 1) begin
+        for(j = 0; j < 4; j <= j + 1) begin
+            changed_positions[i][j] = (i == X) ? positions[i][j] + 1 : positions[i][j];
+        end 
+    end
 
+    if(~invalid(boardstate, positions, changed_positions)) begin
+        
+        current_tetrimino = boardstate[positions[X][0]][positions[Y][0]];
 
-                                  
+        for(i = 0; i < 4; i <= i + 1) begin
+            boardstate[positions[X][i]][positions[Y][i]] = BLANK;
+            boardstate[changed_positions[X][i]][changed_positions[Y][i]] = current_tetrimino;
+        end
 
+        positions <= changed_positions;
+    end
+
+endtask
+
+task automatic moveleft(
+        inout reg [2:0] boardstate [0:9] [0:19],
+        inout reg [4:0] positions [0:1] [0:3]
+    );
+
+    reg [4:0] changed_positions [0:1] [0:3];
+    reg [2:0] current_tetrimino;
+
+    integer i, j;
+
+    for(i = 0; i < 2; i <= i + 1) begin
+        for(j = 0; j < 4; j <= j + 1) begin
+            changed_positions[i][j] = (i == X) ? positions[i][j] - 1 : positions[i][j];
+        end 
+    end
+
+    if(~invalid(boardstate, positions, changed_positions)) begin
+        
+        current_tetrimino = boardstate[positions[X][0]][positions[Y][0]];
+
+        for(i = 0; i < 4; i <= i + 1) begin
+            boardstate[positions[X][i]][positions[Y][i]] = BLANK;
+            boardstate[changed_positions[X][i]][changed_positions[Y][i]] = current_tetrimino;
+        end
+
+        positions <= changed_positions;
+    end
+
+endtask
+
+task automatic rotate(
+        inout reg [2:0] boardstate [0:9] [0:19],
+        inout reg [4:0] positions [0:1] [0:3]
+    );
+
+    reg [4:0] changed_positions [0:1] [0:3];
+    reg [2:0] current_tetrimino;
+
+    integer i, j;
+
+    for(i = 0; i < 2; i <= i + 1) begin
+        for(j = 0; j < 4; j <= j + 1) begin
+            // calculate changed positions TODO
+        end 
+    end
+
+    if(~invalid(boardstate, positions, changed_positions)) begin
+        
+        current_tetrimino = boardstate[positions[X][0]][positions[Y][0]];
+
+        for(i = 0; i < 4; i <= i + 1) begin
+            boardstate[positions[X][i]][positions[Y][i]] = BLANK;
+            boardstate[changed_positions[X][i]][changed_positions[Y][i]] = current_tetrimino;
+        end
+
+        positions <= changed_positions;
+    end
+
+endtask

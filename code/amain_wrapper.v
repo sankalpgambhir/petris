@@ -4,7 +4,7 @@
 
 module amain_wrapper(
     input clock,
-    input reg [3:0] actions,
+    input reg [4:0] actions,
     output vsync,
     output hsync,
     output in_display,
@@ -65,20 +65,22 @@ module amain_wrapper(
     //reg [15:0] GLYPH_ROM [0:255][0:7];
     //rom rom_inst(GLYPH_ROM);   
 
-
+    /*
     always @(posedge clock) begin
         // input testing
-        //if(actions[0])
-        //    $display("right");
-        //if(actions[1])
-        //    $display("left");        
+        if(actions[0])
+            $display("right");
+        if(actions[1])
+            $display("left");        
     end
-
+    */
+    /*
     always @(posedge vsync)begin
         //$display("Frame;");
-        //$display(fcounter);
+        $display(fcounter);
         fcounter = fcounter+1;
-    end 
+    end
+    */ 
 
 
 endmodule

@@ -11,7 +11,7 @@ module vga_sync_clock(
     // clock assumed to be running at 1 GHz
     // we have a multiplier of 40
     // multiplier reduced due to performance issues
-    localparam multiplier = 5;
+    localparam multiplier = 2;
 
     integer counter;
 

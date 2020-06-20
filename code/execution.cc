@@ -85,7 +85,12 @@ int main(int argc, char* argv[]){
 
     // clean grid
     for(int i = 0; i < num_pix; i++){
-        pixel_array[i] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), 0x00, 0x00, 0x00, 0x00);
+        pixel_array[i] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), 0x00, 0x00, 0x00, 0xFF);
+    }
+    for(int i = 0; i < 10 * INTSCALE; i++){
+        for(int j = 0; j < 20 * INTSCALE; j++){
+            pixel_matrix[i][j] = 0;
+        }
     }
 
     if (window == nullptr){
@@ -247,8 +252,8 @@ int check_event(const Uint8* keys){
 void integer_scale(Uint32 from[10][20], Uint32 to[10*INTSCALE][20*INTSCALE], int scale){
     for(int i = 0; i < 10; i++){
         for(int j = 0; j < 20; j++){
-            for(int k = 1; k < scale - 1; k++){
-                for(int l = 1; l < scale - 1; l++){
+            for(int k = 1; k < scale - 1 ; k++){
+                for(int l = 1; l < scale - 1 ; l++){
                     to[i*scale + k][j*scale + l] = from[i][j];
                 }
             }
