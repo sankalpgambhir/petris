@@ -36,11 +36,11 @@ reg [4:0] centerofmass [0:1][0:3]; //[0][i] represents the x coordinates [1][i] 
 // provide a gameclk, slowed down
 // multiplier can be adjust to control speed
 reg gameclk;
-reg [2:0] multiplier = 0;
+reg [2:0] multiplier = 2;
 reg [2:0] counter;
 
 // game state variables
-reg [2:0] tetrimino = Block;
+reg [2:0] tetrimino = straight;
 reg frozen = 0;
 reg gameover = 0;
 
@@ -67,7 +67,10 @@ end
 always @(posedge gameclk) begin 
 
      $display("gameclk: ");
-     //$display(gameclk);
+     $display(gameclk);
+     $display(operation);
+     $display(tetrimino);
+     $display(centerofmass[dir_Y][0]);
 
     // checks and goes down
     movedown(currentstate, centerofmass);
@@ -86,7 +89,7 @@ always @(posedge gameclk) begin
         gameover = has_lost(currentstate);
         
         // generate new piece
-        tetrimino = Block; // randomizer TODO
+        tetrimino = ($random % 7) + 1; // randomizer TODO
         generate_new(centerofmass, tetrimino);
 
         for(i = 0; i < 4; i = i + 1) begin
@@ -473,32 +476,29 @@ task automatic row_deletion(
         output reg [2:0] num_deleted
     );
 
-    reg [19:0] deleted = 0; 
-    reg [19:0] checked = 0;
+    reg [19:0] deleted;
+    
     reg [4:0] curr_row = 0;
     reg to_delete_curr;
 
     integer i, j;
 
-    num_deleted = 1;
-    //deleted[19] = 1;
+    num_deleted = 0;
+    
 
     // check all rows of frozen piece
     // mark deleted ones
-    
     for(i = 0; i < 4; i = i + 1)begin
         curr_row = positions[dir_Y][i];
-        if (~checked[curr_row]) begin
-            to_delete_curr = 1;
+        to_delete_curr = 1;
 
-            for(j = 0; j < 10; j = j + 1) begin
-                to_delete_curr = to_delete_curr && (boardstate[j][curr_row] ? 1'b1 : 1'b0);
-            end
-
-            deleted[curr_row] = to_delete_curr;
-            num_deleted = num_deleted + (to_delete_curr ? 1 : 0); 
-            //checked[curr_row] = 1;
+        for(j = 0; j < 10; j = j + 1) begin
+            to_delete_curr = to_delete_curr && (boardstate[j][curr_row] ? 1 : 0);
         end
+
+        deleted[curr_row] = to_delete_curr;
+        num_deleted = num_deleted + (to_delete_curr ? 1 : 0);
+
     end
 
     // flow
@@ -519,5 +519,6 @@ task automatic row_deletion(
             end
         end
     end
+
 
 endtask
