@@ -470,7 +470,7 @@ task automatic generate_new(
 
 endtask
 
-task row_deletion(
+/*task row_deletion(
         inout reg [2:0] boardstate [0:9] [0:19],
         input reg [4:0] positions [0:1] [0:3],
         output reg [2:0] num_deleted
@@ -491,12 +491,6 @@ task row_deletion(
     for(i = 0; i < 4; i = i + 1)begin
         
         curr_row = positions[dir_Y][i];
-<<<<<<< HEAD
-        to_delete_curr = 1;
-
-        for(j = 0; j < 10; j = j + 1) begin
-            to_delete_curr = to_delete_curr && (boardstate[j][curr_row] ? 1 : 0);
-=======
 
         if (~checked[curr_row]) begin
             to_delete_curr = 1;
@@ -509,7 +503,6 @@ task row_deletion(
             
             num_deleted = num_deleted + (to_delete_curr ? 1 : 0); 
             //checked[curr_row] = 1;
->>>>>>> 1d10db2f03571c0a7cec9352c4f4c2b177cf36f0
         end
 
         deleted[curr_row] = to_delete_curr;
@@ -537,4 +530,30 @@ task row_deletion(
     end
 
 
+endtask */
+task row_deletion(
+        inout reg [2:0] boardstate [0:9] [0:19],
+        output reg [2:0] num_deleted );
+        reg rowvalue ;
+
+        for(i =0;i<20;i=i+1) begin
+            reg rowvalue  = 1; 
+            for(j = 0;j<10;j=j+1) begin
+               rowvalue = rowvalue && currentstate[i][j];
+            end
+            if(rowvalue != 0) begin
+               num_deleted = num_deleted +1;
+               for(j = 0;j<10;j=j+1) begin
+                   for(k = i;k>0;k=k-1) begin
+                       boardstate[j][k] = boardstate[j][k-1];
+                    end
+                    if(i==0) begin
+                        boardstate[j][0] = 0;
+                    end
+
+                        
+                    end
+                end
+            end
+        end
 endtask
