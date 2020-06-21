@@ -231,7 +231,7 @@ function automatic has_lost;
     
 endfunction
 
-function score_increment;
+function [3:0] score_increment;
     input reg [2:0] num_deleted;
     
     case(num_deleted)
@@ -356,10 +356,12 @@ task automatic rotate(
 
     integer i, j;
 
-    for(i = 0; i < 2; i = i + 1) begin
         for(j = 0; j < 4; j = j + 1) begin
             // calculate rotated positions TODO
-        end 
+            changed_positions[dir_X][j] = positions[dir_Y][j] - positions[dir_Y][0]+positions[dir_X][0]; //90 deg rot about coordinates of CM
+            changed_positions[dir_Y][j] = positions[dir_X][0] + positions[dir_Y][0] - positions[dir_X][j];
+
+
     end
 
     if(~invalid(boardstate, positions, changed_positions)) begin
