@@ -467,7 +467,7 @@ task automatic generate_new(
 
 endtask
 
-task automatic row_deletion(
+task row_deletion(
         inout reg [2:0] boardstate [0:9] [0:19],
         input reg [4:0] positions [0:1] [0:3],
         output reg [2:0] num_deleted
@@ -487,15 +487,18 @@ task automatic row_deletion(
     // mark deleted ones
     
     for(i = 0; i < 4; i = i + 1)begin
+        
         curr_row = positions[dir_Y][i];
+
         if (~checked[curr_row]) begin
             to_delete_curr = 1;
 
             for(j = 0; j < 10; j = j + 1) begin
                 to_delete_curr = to_delete_curr && (boardstate[j][curr_row] ? 1'b1 : 1'b0);
             end
-
+            
             deleted[curr_row] = to_delete_curr;
+            
             num_deleted = num_deleted + (to_delete_curr ? 1 : 0); 
             //checked[curr_row] = 1;
         end
