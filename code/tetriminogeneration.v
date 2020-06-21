@@ -36,11 +36,11 @@ reg [4:0] centerofmass [0:1][0:3]; //[0][i] represents the x coordinates [1][i] 
 // provide a gameclk, slowed down
 // multiplier can be adjust to control speed
 reg gameclk;
-reg [2:0] multiplier = 2;
+reg [2:0] multiplier = 1;
 reg [2:0] counter;
 
 // game state variables
-reg [2:0] tetrimino = straight;
+reg [2:0] tetrimino = Block;
 reg frozen = 0;
 reg gameover = 0;
 
@@ -67,10 +67,6 @@ end
 always @(posedge gameclk) begin 
 
      $display("gameclk: ");
-     $display(gameclk);
-     $display(operation);
-     $display(tetrimino);
-     $display(centerofmass[dir_Y][0]);
 
     // checks and goes down
     movedown(currentstate, centerofmass);
@@ -80,7 +76,10 @@ always @(posedge gameclk) begin
     if(frozen) begin
         // check for row deletion
         num_deleted = 0;
-        row_deletion(currentstate, centerofmass, num_deleted);
+        row_deletion(currentstate, num_deleted);
+               $display("====");
+               $display(num_deleted);
+        //row_deletion(currentstate, centerofmass, num_deleted);
         
         // update score
         score = score + score_increment(num_deleted); 
@@ -89,7 +88,7 @@ always @(posedge gameclk) begin
         gameover = has_lost(currentstate);
         
         // generate new piece
-        tetrimino = ($random % 7) + 1; // randomizer TODO
+        tetrimino = Block; // randomizer TODO
         generate_new(centerofmass, tetrimino);
 
         for(i = 0; i < 4; i = i + 1) begin
@@ -469,11 +468,11 @@ task automatic generate_new(
     endcase
 
 endtask
-
-/*task row_deletion(
+/*
+task row_deletion(
         inout reg [2:0] boardstate [0:9] [0:19],
         input reg [4:0] positions [0:1] [0:3],
-        output reg [2:0] num_deleted
+        inout reg [2:0] num_deleted
     );
 
     reg [19:0] deleted;
@@ -492,22 +491,16 @@ endtask
         
         curr_row = positions[dir_Y][i];
 
-        if (~checked[curr_row]) begin
-            to_delete_curr = 1;
+        to_delete_curr = 1;
 
-            for(j = 0; j < 10; j = j + 1) begin
-                to_delete_curr = to_delete_curr && (boardstate[j][curr_row] ? 1'b1 : 1'b0);
-            end
-            
-            deleted[curr_row] = to_delete_curr;
-            
-            num_deleted = num_deleted + (to_delete_curr ? 1 : 0); 
-            //checked[curr_row] = 1;
+        for(j = 0; j < 10; j = j + 1) begin
+            to_delete_curr = to_delete_curr && (boardstate[j][curr_row] ? 1'b1 : 1'b0);
         end
-
+        
         deleted[curr_row] = to_delete_curr;
-        num_deleted = num_deleted + (to_delete_curr ? 1 : 0);
-
+        
+        num_deleted = num_deleted + (to_delete_curr ? 1 : 0); 
+        deleted[curr_row] = to_delete_curr;
     end
 
     // flow
@@ -531,28 +524,34 @@ endtask
 
 
 endtask */
-task row_deletion(
+
+task automatic row_deletion(
         inout reg [2:0] boardstate [0:9] [0:19],
-        output reg [2:0] num_deleted );
-        reg rowvalue ;
+        inout reg [2:0] num_deleted
+        );
+        
+        reg rowvalue = 0;
+
+        integer i, j, k;
+
+        num_deleted = 0;
 
         for(i =0;i<20;i=i+1) begin
-            reg rowvalue  = 1; 
+            rowvalue = 1; 
             for(j = 0;j<10;j=j+1) begin
-               rowvalue = rowvalue && currentstate[i][j];
-            end
+               rowvalue = rowvalue && (boardstate[j][i] ? 1 : 0);
+            end     
+
             if(rowvalue != 0) begin
-               num_deleted = num_deleted +1;
+               num_deleted = num_deleted + 1;
                for(j = 0;j<10;j=j+1) begin
                    for(k = i;k>0;k=k-1) begin
                        boardstate[j][k] = boardstate[j][k-1];
                     end
                     if(i==0) begin
-                        boardstate[j][0] = 0;
+                        boardstate[j][0] = BLANK;
                     end
 
-                        
-                    end
                 end
             end
         end
