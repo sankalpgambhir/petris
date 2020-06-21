@@ -129,7 +129,7 @@ always @(negedge vsync) begin
         end
 
         // if rotate, rotate the piece
-        if(operation[ROTATE]) begin
+        if(operation[ROTATE] && (tetrimino != Block)) begin
             // check and rotate
             rotate(currentstate, centerofmass);
         end
