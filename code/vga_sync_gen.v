@@ -15,14 +15,14 @@ module vga_sync_gen(
     // increment or loop x and y
     always @(posedge clock) begin
         if (high_x) begin
-            count_x <= 0;
+            count_x = 0;
             if (high_y)
-                count_y <= 0;
+                count_y = 0;
             else
-                count_y <= count_y + 1;
+                count_y = count_y + 1;
         end
         else
-            count_x <= count_x + 1; 
+            count_x = count_x + 1; 
     end
 
     // set sync and display signals

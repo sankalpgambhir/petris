@@ -15,7 +15,7 @@
 #define HPITCH 800
 #define VPITCH 525
 #define INTSCALE 20
-#define OFFSETX 250
+#define OFFSETX 300
 #define OFFSETY 35
 #define TEXT_X 40
 #define TEXT_Y 200
@@ -121,13 +121,13 @@ int main(int argc, char* argv[]){
 
 
         // generate pixel array
-        if(wrapper->in_display){
+        if(wrapper->count_x < 10 && wrapper->count_y < 20){
             reduced_matrix[wrapper->count_x][wrapper->count_y] = 
                 SDL_MapRGBA(
                     SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888),
-                    (int) wrapper->vga_r * 0xF4 + 0x0B,
-                    (int) wrapper->vga_g * 0xF4 + 0x0B,
-                    (int) wrapper->vga_b * 0xF4 + 0x0B,
+                    (int) wrapper->vga_r * (0xFF-0x3F) + 0x3F,
+                    (int) wrapper->vga_g * (0xFF-0x3F) + 0x3F,
+                    (int) wrapper->vga_b * (0xFF-0x3F) + 0x3F,
                     0xFF // alpha
                 );
             //printf("%d, %d, %d\n", wrapper->vga_r, wrapper->vga_g, wrapper->vga_b);
@@ -284,7 +284,7 @@ void integer_scale(Uint32 from[10][20], Uint32 to[10*INTSCALE][20*INTSCALE], int
 }
 
 void linearize_pixel(Uint32 from[10*INTSCALE][20*INTSCALE], Uint32 to[WIDTH*HEIGHT]){
-    for(int i = 0; i < 10*INTSCALE; i++){
+    for(int i = 0; i < (10 * INTSCALE); i++){
         for(int j = 0; j < (20 * INTSCALE); j++){
             to[(i + OFFSETX) + (j + OFFSETY)*WIDTH] = from[i][j];
         }    
