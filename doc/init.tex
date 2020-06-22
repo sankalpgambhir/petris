@@ -27,6 +27,11 @@
 \pgfplotsset{compat=1.16}
 % add all required graph elements here
 \usetikzlibrary{arrows.meta, automata, backgrounds, shapes, decorations}
+\usetikzlibrary{positioning,fit,calc}  
+\tikzset{
+        block/.style={draw, thick, text width=3cm, minimum height=1.5cm, align=center},   
+        line/.style={-latex}
+    }
 
 % useful common symbols idk copied em
 \newcommand{\booleans}{\mathbb{B}}
