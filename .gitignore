@@ -5,3 +5,7 @@ code/.vscode/*
 *.vtest
 *.cctest
 doc/*.pdf
+*.aux 
+*.fdb_latexmk
+*.fls
+*.log
