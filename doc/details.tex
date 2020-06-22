@@ -31,42 +31,40 @@ The logical module for the game consists of a single module that takes inputs fr
 The inputs are 
 \begin{itemize}
     \item Wire vsync as the clock 
-    \item 5 bit wire with Operations
+    \item Wire net with Operations
     \item The current framenumber 
 \end{itemize}
 
 The outputs are 
 \begin{itemize}
-    \item A 10x20 array of registers, each 3 bits deep holding the gameboard state
-    \item An 8 bit register with the score
+    \item A 10x20 array of registers, with the gameboard state
+    \item An register with the score
     \item A register that holds the gameover state 
 \end{itemize}
 
 Further, there are several interal components 
 \begin{itemize}
-    \item A 2x4 array of registers, each 5 bits deep tracking the coordinates of the 4 blocks in each Tetrimino
+    \item A 2x4 array of registers, tracking the coordinates of the 4 blocks in each Tetrimino
     \item A register storing whether a tetrimino can move more or should be frozen in place
-    \item A 3 bit register which acts as a counter to slow the game clock compared vsync \pushkar{Can you think of a better description}
-    \item A 3 bit register storing the code of the current tetrimino
+    \item A game clock \pushkar{Can you think of a better description}
+    \item A register storing the code of the current tetrimino
 \end{itemize}
 
 \paragraph{Interface}
 \label{paragraph:interface}
 The instantiation of the module sets all the registers in the boardstate to 0. An initial tetrimino is generated.
 \newline 
-The gameclock updates at the posedge of vsync. Whenever the gameclock hits the posedge and the game isn't over 
-the module performs certain tasks based on the inputs and boardstate
+When the gameclock updates module performs certain tasks 
 \begin{itemize}
     \item Check whether the current tetrimino is frozen or can move more
     \item If it is frozen, check whether the game is over checking whether any block of the top row is filled
-    \item If the game isn't over, delete the rows that are filled, update the score move all rows above down and generate a new tetrimino
+    \item If the game isn't over, delete the rows that are filled, update the score ,move all rows above down, generate a new tetrimino
     \item If the tetrimino isn't frozen, move it down 
     \item 
 \end{itemize}
 We faced issues issues with the syncing of the actions and input due to the relatively low framerate of the clock. 
 Therefore evaluating of the inputs is instead done at negedge vsync to prevent inputs 
 from being evaluated simultaneously with the above evaluations.
-
 \paragraph{Tetrimino Generation }
 \label{paragraph:tetgen}
 The inital block is generated as a L-BLock. 
@@ -74,9 +72,7 @@ Every subsequent block is generated based on the framenumber
 at which the generation happens, which ensures sufficient percieved 
 randomness using a simple hashing
  \( (Framenumber*PrimeNumber \% 7 +1 \) 
- All of these are generated with one specially identified block
- (Termed by the us as the center of mass) at (5,0) on the gameboard
-
+With the center of mass at (0,5).
 \paragraph{Motion Control }
 \label{paragraph:motioncontrol}
 4 operations are allowed
@@ -99,11 +95,9 @@ randomness using a simple hashing
 \label{paragraph:validation}
 Two things are checked to see whether a move is valid 
 \begin{itemize}
-    \item Whether the new position goes beyond the boundary.  As registers cycle back to 0 on going over the maximum 
-    value allowed by the but count, this is quite easily done
+    \item Whether the new position goes beyond the boundary. 
     by checking  whether the coordinates are greater than 9 and 19 respectively
-    \item Whether the new position overlaps with an occupied block. This is done by checking whether the positions at the new coordinates 
-    are occupied after removing overlap from the previous and new positions. 
+    \item Whether the new position overlaps with an occupied block. 
    
 \end{itemize}
 
