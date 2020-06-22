@@ -1,11 +1,11 @@
 % description of block structure 
 
 % block diagram
-\begin{figure}
+\begin{figure}[h]
     \centering
     \input{fig/blockdiag.tex}
     %\captionsetup{justification=centering}
-    \caption{Block diagram $\sankalp{Better caption?}$}
+    \caption{Block diagram $\sankalp{Better\ caption?}$}
 \label{fig:blockdiag}
 \end{figure}
 
@@ -34,3 +34,51 @@
 
 % c++
 \subsection{C++ Wrapper}
+
+In the absence of an FPGA to run described modules, 
+we had to look to other options. With a strong desire to 
+maintain real-time playability, we tried several options ---
+standard simulations had to be rejected due to not being 
+anywhere close to real-time, with the inability to accept inputs.
+Having considered the idea of running a simulated clock, we then
+moved to forcefully driving a clock for the simulation. We attempted
+to use \(\texttt{verilog-vga-simulator}\) \cite{vga-simulator},
+a C-based program interfacing with the simulation via 
+Verilog Procedural Interface (VPI) \cite{vpi}, drawing the resultant
+VGA output via Simple DirectMedia Layer \cite{sdl} referred to as 
+SDL herein. We were driven away by a cocktail of issues --- primarily
+the performance, combined with the relative inflexibility of VPI 
+and the now obsolete \cite{sdl_obsolete} SDL API. However, the cocktail
+was more than resolvable.
+
+Saving grace came in the form of Verilator \cite{verilator}, a compiler for
+Verilog which translates modules top-down into C++ code with
+I/O interfaces handled via classes \cite{verilator-implement}. This allowed
+us to bypass having to deal with VPI's idiosyncrasies and limited nature, paired
+with the finicky fixes required to obtain a realtime driven clock.
+
+Armed with a way to handle inputs and outputs to our modules in realtime, we 
+needed a VGA simulator to handle the outputs. This was executed using
+SDL2 \cite{sdl2} and a low-level frame-buffer, rendering to screen via 
+a cross-platform hardware accelerated rendering interface (with OpenGL \cite{opengl}
+primarily used for testing).
+
+However, a software based simulation is unable to drive a clock fast enough
+to run a VGA simulation in any of the common modes \cite{vga_modes}. As such,
+a myriad of performance-centric changes had to be made. Alongside several
+minor optimizations was a major change to the system --- a drastic reduction in
+resolution or frame rate. Realistically, keeping the same resolution, the frame 
+rate would have been cut to approximately \(\texttt{1/20 fps}\), far from playable.
+The resolution would have to be cut similarly to maintain a playable frame rate.
+Since most of our clock cycles are used up driving the VGA controller, keeping true
+to the design, we chose to downscale it. Outputting a much smaller resolution from
+the simulated Verilog modules and writing an integer scaling \cite{intscale} system
+within the relatively fast C++ wrapper. 
+
+We would like to add that much higher raw resolution and frame rates are possible 
+and have been seen after removing the limitation to output serial VGA. Providing
+the frame buffer as output to the display simulator in parallel reduces the time
+complexity of drawing a frame from \(\bigO (n^2)\) to \(\bigO (1)\) in screen 
+dimensions. However, having achieved desired levels of responsiveness and 
+playability without resorting to bending the limits of the FPGA, we chose not 
+to do this.
