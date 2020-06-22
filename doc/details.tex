@@ -25,8 +25,8 @@ modules, with necessary root modules instantiated within this wrapper.
 % logic supermodule
 \subsubsection{Logical Modules}
 \label{subsection:logicalmod}
-\paragraph{Structural Description]}
-\label{paragraph:Structuraldescr}
+\subsubsection{Structural Description]}
+\label{subsubsection:Structuraldescr}
 The logical module for the game consists of a single module that takes inputs from the top level wrapper and outputs the board state to the frame buffer. \newline
 The inputs are 
 \begin{itemize}
@@ -50,8 +50,8 @@ Further, there are several interal components
     \item A register storing the code of the current tetrimino
 \end{itemize}
 
-\paragraph{Interface}
-\label{paragraph:interface}
+\subsubsection{Interface}
+\label{subsubsection:interface}
 The instantiation of the module sets all the registers in the boardstate to 0. An initial tetrimino is generated.
 \newline 
 When the gameclock updates module performs certain tasks 
@@ -64,16 +64,16 @@ When the gameclock updates module performs certain tasks
 We faced issues issues with the syncing of the actions and input due to the relatively low framerate of the clock. 
 Therefore evaluating of the inputs is instead done at negedge vsync to prevent inputs 
 from being evaluated simultaneously with the above evaluations.
-\paragraph{Tetrimino Generation }
-\label{paragraph:tetgen}
+\subsubsection{Tetrimino Generation }
+\label{subsubsection:tetgen}
 The inital block is generated as a L-BLock. 
 Every subsequent block is generated based on the framenumber 
 at which the generation happens, which ensures sufficient percieved 
 randomness using a simple hashing
  \( (Framenumber*PrimeNumber \% 7 +1 \) 
 With the center of mass at (0,5).
-\paragraph{Motion Control }
-\label{paragraph:motioncontrol}
+\subsubsection{Motion Control }
+\label{subsubsection:motioncontrol}
 4 operations are allowed
 \begin{itemize}
     \item Move down
@@ -90,8 +90,8 @@ With the center of mass at (0,5).
  be equal to the temporary coordinates previously calculated and the boardstate is updated by deleting the blocks at the previous coordinates
  and creating a tetrimino at the new coordinates
 
-\paragraph{Validation }
-\label{paragraph:validation}
+\subsubsection{Validation }
+\label{subsubsection:validation}
 Two things are checked to see whether a move is valid 
 \begin{itemize}
     \item Whether the new position goes beyond the boundary. 
@@ -104,26 +104,32 @@ Two things are checked to see whether a move is valid
 \subsubsection{Display Modules}
 \label{subsection:display}
 
-\paragraph{VGA Control Module}
-\label{paragraph:vgacontrol}
+\subsubsection{VGA Control Module}
+\label{subsubsection:vgacontrol}
 %
-\paragraph{Framer Module}
-\label{paragraph:framer}
+\subsubsection{Framer Module}
+\label{subsubsection:framer}
 %
+\begin{lstlisting}[language=Verilog]
+    input vsync;
+    inout reg [2:0] frame_buffer [0:9] [0:19];
+    output reg [2:0] frame_out [0:9] [0:19];
+\end{lstlisting}
+
 The Framer Module maintains a frame buffer with controlled public access,
 gated using a semaphore \cite{semaphore}. This allows other modules and tasks 
 to write directly to the frame buffer instead of maintaining copies of the data 
 potentially causing overwriting and synchronisation issues. The module writes this
 frame buffer onto an output buffer at \(\texttt{vsync}\), 
-in turn sent onto VGA rails serially (\ref{paragraph:vgacontrol})
+in turn sent onto VGA rails serially (\ref{subsubsection:vgacontrol})
 over the course of the next frame cycle. After flushing this data, the buffer is cleared,
 i.e. written over with black, preparing it for the next output cycle.
 
-\paragraph{Synchronisation Module}
-\label{paragraph:vgasync}
+\subsubsection{Synchronisation Module}
+\label{subsubsection:vgasync}
 %
 The Synchronisation Module receives a \(\texttt{clock}\) signal from
-the VGA controller (\ref{paragraph:vgacontrol}) and calculates several
+the VGA controller (\ref{subsubsection:vgacontrol}) and calculates several
 signals critical to the VGA control flow:
 
 \begin{itemize}
@@ -142,7 +148,7 @@ signals critical to the VGA control flow:
             standard \cite{vgastandard}. Intended to be passed via a DAC to the monitor.
             In our implementation, \(\texttt{hsync}\) sees little use other than this,
             while \(\texttt{vsync}\), marking, the end of a frame, is at several points 
-            (\ref{paragraph:interface}, \ref{paragraph:motioncontrol}, \ref{paragraph:framer}, 
+            (\ref{subsubsection:interface}, \ref{subsubsection:motioncontrol}, \ref{subsubsection:framer}, 
             \ref{subsection:cppwrap}) used to flush a frame buffer or to advance a logical step.
 \end{itemize}
 
