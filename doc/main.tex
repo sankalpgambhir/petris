@@ -27,7 +27,14 @@
     \centering
     $\textbf{Abstract --}$
     $\petris$ is a bad attempt at a portmanteau of 
-    EP and Tetris. It recreates the classic game of Tetris on a hardware simulation. We have developed a game module and a VGA simulator using the SDL library. 
+    EP and Tetris. We recreate the well known game of NES Tetris \cite{tetris}
+    using Verilog, with simulations done using Verilator \cite{verilator} under
+    a C++ wrapper with a VGA display simulator based on Simple DirectMedia Layer 2
+    \cite{sdl2} running on an OpenGL based hardware-accelerated renderer. Our approach
+    is novel and original, using software layers to emulate nearly perfectly a set of
+    physical buttons and a display output, alllowing for distinctive software-backed
+    realtime play in the absence of an FPGA.
+
 \end{abstract}
 
 % section names copied from the format from now, subject to change

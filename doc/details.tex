@@ -14,7 +14,13 @@
 
 % wrapper
 \subsubsection{Wrapper}
-
+Verilog modules are instantiated top-down for the purposes of the 
+simulation. The logical structure of the design leaves us with 
+several root modules, both harder to manage in practice, and 
+unsupported as of yet for the purposes of simulation \cite{verilatortopmod}.
+So we create a module that accepts inputs from the C++ wrapper (\ref{subsection:cppwrap}),
+provides outputs to it, and acts as an interfacing media for the different
+modules, with necessarty root modules instantiated within this wrapper.
 
 % logic supermodule
 \subsubsection{Logical Modules}
@@ -112,7 +118,7 @@ Two things are checked to see whether a move is valid
 \label{paragraph:framer}
 %
 The Framer Module maintains a frame buffer with controlled public access,
-maintained using a semaphore \cite{semaphore}. This allows other modules and tasks 
+gated using a semaphore \cite{semaphore}. This allows other modules and tasks 
 to write directly to the frame buffer instead of maintaining copies of the data 
 potentially causing overwriting and synchronisation issues. The module writes this
 frame buffer onto an output buffer at \(\texttt{vsync}\), 
