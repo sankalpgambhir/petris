@@ -1,11 +1,11 @@
 
-\begin{tikzpicture}[scale=0.81, every node/.style={transform shape}]
+\begin{tikzpicture}[scale=0.67, every node/.style={transform shape}]
     % macro block diagram for simulation
 
-    \node[block, minimum width=18cm ] (cpp) at ( 0,  0) {C++ Wrapper};
+    \node[block, minimum width=22cm ] (cpp) at ( 2,  0.9) {C++ Wrapper};
     
     % blocks part of the display super-module
-    \node[block, minimum width=18cm ] (main) at ( 0, -3) {Verilog Wrapper};
+    \node[block, minimum width=22cm ] (main) at ( 2, -2.5) {Verilog Wrapper};
     \node[block] (sync) at (-7, -6) {Synchronization module};
     \node[block] (vga) at (-3, -6) {VGA Controller};
     \node[block] (fr) at (-3, -9) {Framer};
@@ -14,9 +14,10 @@
     \node[block, minimum height=5cm] (int) at ( 3, -7.5) {Interface Module};
     \node[block] (tetgen) at ( 7, -6.5) {Tetrimino Generation};
     \node[block] (motcon) at ( 7, -8.5) {Motion Control};
+    \node[block, minimum height=5cm] (val) at ( 11, -7.5) {Validation Module};
 
     \node[draw,inner xsep=4mm,inner ysep=7mm,fit=(vga)(fr)(sync), label={-90:Display Control}] (d) {};
-    \node[draw,inner xsep=4mm,inner ysep=7mm,fit=(int)(tetgen)(motcon), label={-90:Game Logic}] (l) {};
+    \node[draw,inner xsep=4mm,inner ysep=7mm,fit=(int)(tetgen)(motcon)(val), label={-90:Game Logic}] (l) {};
     
     \node[draw,inner xsep=4mm,inner ysep=7mm,fit=(main)(d)(l), label={-90:Verilog}] (v) {};
 
@@ -30,5 +31,9 @@
     \draw[<->] (fr)-- (vga);
 
     % logic connections
+    \draw[<->] (tetgen)-- (int);
+    \draw[<->] (motcon)-- (int);
+    \draw[<->] (tetgen)-- (val);
+    \draw[<->] (motcon)-- (val);
 
 \end{tikzpicture}
