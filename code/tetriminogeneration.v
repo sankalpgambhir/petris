@@ -21,12 +21,16 @@ localparam DOWN = 2;
 localparam ROTATE = 3;
 localparam START = 4;
 
+
+localparam KEY = 2971; // prime number
+
 module tetriminogeneration (
     input wire [4:0] operation,  
     input wire vsync, 
-    input reg [9:0] framenumber, 
+    input reg [10:0] framenumber, 
     output reg [2:0] currentstate[0:9][0:19], 
     output reg [7:0] score,
+    output reg gameover,
     input clock
     ); 
 
@@ -40,14 +44,14 @@ reg [2:0] multiplier = 1;
 reg [2:0] counter;
 
 // game state variables
-reg [2:0] tetrimino = Block;
+reg [2:0] tetrimino = L;
 reg frozen = 0;
-reg gameover = 0;
 
 reg [2:0] num_deleted;
 integer i;
 
 initial begin
+    gameover = 0;
     generate_new(centerofmass, tetrimino);
 
     for(i = 0; i < 4; i = i + 1) begin
@@ -65,80 +69,78 @@ end
 
 
 always @(posedge gameclk) begin 
+    if(~gameover) begin
 
-     $display("gameclk: ");
+        // checks if frozen
+        frozen = checkfreeze(currentstate, centerofmass);
 
-    // checks and goes down
-    movedown(currentstate, centerofmass);
-    // checks if frozen
-    frozen = checkfreeze(currentstate, centerofmass);
+        if(frozen) begin
+            // check for row deletion
+            num_deleted = 0;
+            row_deletion(currentstate, num_deleted);
+            //row_deletion(currentstate, centerofmass, num_deleted);
+            
+            // update score
+            score = score + score_increment(num_deleted); 
 
-    if(frozen) begin
-        // check for row deletion
-        num_deleted = 0;
-        row_deletion(currentstate, num_deleted);
-               $display("====");
-               $display(num_deleted);
-        //row_deletion(currentstate, centerofmass, num_deleted);
-        
-        // update score
-        score = score + score_increment(num_deleted); 
+            // check for loss
+            gameover = has_lost(currentstate);
+            
+            // generate new piece
+            tetrimino = ((framenumber * KEY) % 7) + 1; // randomizer TODO
+            generate_new(centerofmass, tetrimino);
 
-        // check for loss
-        gameover = has_lost(currentstate);
-        
-        // generate new piece
-        tetrimino = Block; // randomizer TODO
-        generate_new(centerofmass, tetrimino);
+            for(i = 0; i < 4; i = i + 1) begin
+                currentstate[centerofmass[dir_X][i]][centerofmass[dir_Y][i]] = tetrimino;
+            end
 
-        for(i = 0; i < 4; i = i + 1) begin
-            currentstate[centerofmass[dir_X][i]][centerofmass[dir_Y][i]] = tetrimino;
+            frozen = 0;
         end
 
-        frozen = 0;
+        // checks and goes down
+        movedown(currentstate, centerofmass);
     end
-
 end
 
 always @(negedge vsync) begin
 
-    // code for starting? TODO
-    // stop when lost TODO
+    if (~gameover) begin
+        // code for starting? TODO
 
-    // check if input provided
-    if(operation) begin
-        // check validity, move accordingly
+        // check if input provided
+        if(operation) begin
+            // check validity, move accordingly
 
-        // if down move down
-        if(operation[DOWN]) begin
-            // check
-            // move down
-            movedown(currentstate, centerofmass);
-        end
-
-        // if left or right, move there
-        if(operation[LEFT] || operation[RIGHT]) begin
-            if(~operation[LEFT]) begin
-                // check and move right
-                moveright(currentstate, centerofmass);
+            // if down move down
+            if(operation[DOWN]) begin
+                // check
+                // move down
+                movedown(currentstate, centerofmass);
             end
-            else if(~operation[RIGHT]) begin
-                // check and move left
-                moveleft(currentstate, centerofmass);
+
+            // if left or right, move there
+            if(operation[LEFT] || operation[RIGHT]) begin
+                if(~operation[LEFT]) begin
+                    // check and move right
+                    moveright(currentstate, centerofmass);
+                end
+                else if(~operation[RIGHT]) begin
+                    // check and move left
+                    moveleft(currentstate, centerofmass);
+                end
             end
+
+            // if rotate, rotate the piece
+            if(operation[ROTATE] && (tetrimino != Block)) begin
+                // check and rotate
+                rotate(currentstate, centerofmass);
+            end
+
         end
 
-        // if rotate, rotate the piece
-        if(operation[ROTATE] && (tetrimino != Block)) begin
-            // check and rotate
-            rotate(currentstate, centerofmass);
-        end
-
+        // update frame 
+        // done automatically if moved
     end
-
-    // update frame 
-    // done automatically if moved
-
 end
 
 endmodule
@@ -220,14 +222,14 @@ endfunction
 function automatic has_lost;
     input reg [2:0] boardstate [0:9] [0:19];
 
-    reg live = 1;
+    reg lost = 0;
     integer i;
 
     for(i = 0; i < 10; i = i + 1) begin
-        live = live && ~(boardstate[i][0]);
+        lost = lost || (boardstate[i][0] ? 1 : 0);
     end
 
-    has_lost = ~live;
+    has_lost = lost;
     
 endfunction
 

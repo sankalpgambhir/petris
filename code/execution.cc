@@ -161,7 +161,12 @@ int main(int argc, char* argv[]){
             }
             
             // update score
-            sprintf(text, "PETRIS SCORE: %d", wrapper->score); // add actual score here
+            if(!wrapper->gameover){
+                sprintf(text, "PETRIS SCORE: %d", wrapper->score); 
+            }
+            else{
+                sprintf(text, "FINAL SCORE: %d", wrapper->score);
+            }
             
             if(update_text(renderer, 
                             text_box_texture,
@@ -177,8 +182,20 @@ int main(int argc, char* argv[]){
 
             SDL_RenderPresent(renderer);
 
+            if(wrapper->gameover){
+                /*
+                while(SDL_PollEvent(&e)){
+                    if(e.type == SDL_KEYDOWN && keys[SDL_SCANCODE_KP_ENTER]){
+                        break;
+                    }
+                }*/
+                SDL_Delay(2000);
+                break;
+            }
+
         }
 
+        /*
         // measure loop time
         end = std::chrono::steady_clock::now();
         time_taken = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count(); 
@@ -186,6 +203,7 @@ int main(int argc, char* argv[]){
         if(!wrapper->hsync){
             //printf("%d us\n", time_taken);
         }
+        */
 
         // add possible delay here based on frame rate
         main_time++;
@@ -265,6 +283,9 @@ int check_event(const Uint8* keys){
     }
     if (keys[SDL_SCANCODE_DOWN]){
         actions += 0b00100;
+    }
+    if (keys[SDL_SCANCODE_UP]){
+        actions += 0b01000;
     }
 
     return actions;

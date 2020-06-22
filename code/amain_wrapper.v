@@ -13,7 +13,8 @@ module amain_wrapper(
     output vga_b,
     output reg [9:0] count_x,
     output reg [9:0] count_y,
-    output reg [7:0] score
+    output reg [7:0] score,
+    output reg gameover
     );
 
     // clock incremented from C++ wrapper
@@ -56,31 +57,18 @@ module amain_wrapper(
         .score(score),
         .vsync(vsync),
         .framenumber(fcounter),
+        .gameover(gameover),
         .clock(clock)
     ); 
     
     framer framer_inst(vsync, frame_out, frame_buffer);
-
-    // temporarily instantiate every module to have only one top module
-    //reg [15:0] GLYPH_ROM [0:255][0:7];
-    //rom rom_inst(GLYPH_ROM);   
-
-    /*
-    always @(posedge clock) begin
-        // input testing
-        if(actions[0])
-            $display("right");
-        if(actions[1])
-            $display("left");        
-    end
-    */
-    /*
+    
     always @(posedge vsync)begin
         //$display("Frame;");
-        $display(fcounter);
+        //$display(fcounter);
         fcounter = fcounter+1;
     end
-    */ 
+    
 
 
 endmodule
