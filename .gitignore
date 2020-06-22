@@ -4,3 +4,4 @@ code/.vscode/*
 *.o
 *.vtest
 *.cctest
+doc/*.pdf
