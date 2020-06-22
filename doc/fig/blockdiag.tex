@@ -1,0 +1,34 @@
+
+\begin{tikzpicture}[scale=0.81, every node/.style={transform shape}]
+    % macro block diagram for simulation
+
+    \node[block, minimum width=18cm ] (cpp) at ( 0,  0) {C++ Wrapper};
+    
+    % blocks part of the display super-module
+    \node[block, minimum width=18cm ] (main) at ( 0, -3) {Verilog Wrapper};
+    \node[block] (sync) at (-7, -6) {Synchronization module};
+    \node[block] (vga) at (-3, -6) {VGA Controller};
+    \node[block] (fr) at (-3, -9) {Framer};
+    
+    % blocks part of the logic super-module
+    \node[block, minimum height=5cm] (int) at ( 3, -7.5) {Interface Module};
+    \node[block] (tetgen) at ( 7, -6.5) {Tetrimino Generation};
+    \node[block] (motcon) at ( 7, -8.5) {Motion Control};
+
+    \node[draw,inner xsep=4mm,inner ysep=7mm,fit=(vga)(fr)(sync), label={-90:Display Control}] (d) {};
+    \node[draw,inner xsep=4mm,inner ysep=7mm,fit=(int)(tetgen)(motcon), label={-90:Game Logic}] (l) {};
+    
+    \node[draw,inner xsep=4mm,inner ysep=7mm,fit=(main)(d)(l), label={-90:Verilog}] (v) {};
+
+    % super-module connections
+    \draw[->] (cpp)-- (main);
+    \draw[<->] (vga)-- (vga|- main.south);
+    \draw[<->] (int)-- (int|- main.south);
+
+    % display connections
+    \draw[<->] (vga.west)-- (sync.east|- vga.west);
+    \draw[<->] (fr)-- (vga);
+
+    % logic connections
+
+\end{tikzpicture}
