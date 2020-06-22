@@ -9,3 +9,4 @@ doc/*.pdf
 *.fdb_latexmk
 *.fls
 *.log
+*.synctex(busy)
