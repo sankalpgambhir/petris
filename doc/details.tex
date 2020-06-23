@@ -1,7 +1,7 @@
 % description of block structure 
 
 % block diagram
-\begin{figure}[h]
+\begin{figure}[ht]
     \centering
     \input{fig/blockdiag.tex}
     %\captionsetup{justification=centering}
@@ -17,14 +17,14 @@
 %
 \begin{lstlisting}[language=Verilog]
     input clock;
-    input reg [3:0] actions; // input user action [ROTATE | DOWN | LEFT | RIGHT]
+    input [3:0] actions; // input user action [ROTATE | DOWN | LEFT | RIGHT]
     output vsync;
     output hsync;
     output vga_r;
     output vga_g;
     output vga_b;
-    output reg [7:0] score;
-    output reg gameover;
+    output [7:0] score;
+    output gameover;
 \end{lstlisting}
 
 Verilog modules are instantiated top-down for the purposes of the 
@@ -84,7 +84,7 @@ The inital block is generated as a L-BLock.
 Every subsequent block is generated based on the framenumber 
 at which the generation happens, which ensures sufficient percieved 
 randomness using a simple hashing
- \( (Framenumber*PrimeNumber \% 7 +1 \) 
+ \( \texttt{(Framenumber * PrimeNumber\ \%\ 7) + 1} \) 
 With the center of mass at (0,5).
 \subsubsection{Motion Control }
 \label{subsubsection:motioncontrol}
@@ -123,11 +123,19 @@ Two things are checked to see whether a move is valid
 %
 \begin{lstlisting}[language=Verilog]
     input clock;
-    input reg [2:0] frame [0:9] [0:19], // frame [x][y][R | G | B]
+    input reg [2:0] frame_buffer [0:9] [0:19], // frame [x][y][R | G | B]
     output reg [2:0] vga_pixel, // output bus for 3-bit RGB color
     output hsync_out;
     output vsync_out;
 \end{lstlisting}
+
+The VGA control module serves as a generator for the serial VGA output 
+(ports 3-5) and instantiates the framer (\ref{subsubsection:framer}) and
+the synchronisation module (\ref{subsubsection:vgasync}).
+
+Every \(\texttt{vga\_clock}\) (see \ref{paragraph:vgasync}), based on the
+current \(\texttt{count\_x}\) and \(\texttt{count\_y}\), the relevant pixel from \\
+\(\texttt{frame\_buffer}\) is outputted to the VGA bus.\\
  
 
 \subsubsection{Framer Module}
@@ -142,11 +150,12 @@ Two things are checked to see whether a move is valid
 The Framer Module maintains a frame buffer with controlled public access,
 gated using a semaphore \cite{semaphore}. This allows other modules and tasks 
 to write directly to the frame buffer instead of maintaining copies of the data 
-potentially causing overwriting and synchronisation issues. The module writes this
-frame buffer onto an output buffer at \(\texttt{vsync}\), 
+potentially causing overwriting and synchronisation issues.
+
+The module writes this frame buffer onto an output buffer at \(\texttt{vsync}\), 
 in turn sent onto VGA rails serially (\ref{subsubsection:vgacontrol})
 over the course of the next frame cycle. After flushing this data, the buffer is cleared,
-i.e. written over with black, preparing it for the next output cycle.
+i.e. written over with black, preparing it for the next output cycle.\\
 
 \subsubsection{Synchronisation Module}
 \label{subsubsection:vgasync}
@@ -218,6 +227,13 @@ SDL2 \cite{sdl2} and a low-level frame-buffer, rendering to screen via
 a cross-platform hardware accelerated rendering interface (with OpenGL \cite{opengl}
 primarily used for testing).
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.6]{fig/ouput_screenshot.png}
+    \caption{SDL based output}
+\label{fig:output}
+\end{figure}
+
 However, a software based simulation is unable to drive a clock fast enough
 to run a VGA simulation in any of the common modes \cite{vga_modes}. As such,
 a myriad of performance-centric changes had to be made. Alongside several
@@ -235,5 +251,5 @@ and have been seen after removing the limitation to output serial VGA. Providing
 the frame buffer as output to the display simulator in parallel reduces the time
 complexity of drawing a frame from \(\bigO (n^2)\) to \(\bigO (1)\) in screen 
 dimensions. However, having achieved desired levels of responsiveness and 
-playability without resorting to bending the limits of the FPGA, we chose not 
+playability without resorting to bending the limits of the project, we chose not 
 to do this.
