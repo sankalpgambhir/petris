@@ -217,10 +217,10 @@ moved to forcefully driving a clock for the simulation.
  We attempted to use \(\texttt{verilog-vga-simulator}\) \cite{vga-simulator},
 a C-based program interfacing with the simulation via 
 Verilog Procedural Interface (VPI) \cite{vpi}, drawing the resultant
-VGA output via Simple DirectMedia Layer \cite{sdl} referred to as 
+VGA output via Simple DirectMedia Layer \cite{sdl2} referred to as 
 SDL herein. We were driven away by a cocktail of issues --- primarily
 the performance, combined with the relative inflexibility of VPI 
-and the now obsolete \cite{sdl_obsolete} SDL API. However, the cocktail
+and the now obsolete SDL API. However, the cocktail
 was more than resolvable. 
 \\
 \\
@@ -233,7 +233,7 @@ with the finicky fixes required to obtain a realtime driven clock.
 \\
 Armed with a way to handle inputs and outputs to our modules in realtime, we 
 needed a VGA simulator to handle the outputs. This was executed using
-SDL2 \cite{sdl2} and a low-level frame-buffer, rendering to screen via 
+SDL2 and a low-level frame-buffer, rendering to screen via 
 a cross-platform hardware accelerated rendering interface (with OpenGL \cite{opengl}
 primarily used for testing).
 
