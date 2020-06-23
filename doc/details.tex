@@ -38,30 +38,29 @@ modules, with necessary root modules instantiated within this wrapper.
 % logic supermodule
 \subsubsection{Logical Modules}
 \label{subsection:logicalmod}
-\subsubsection{Structural Description]}
+\subsubsection{Structural Description}
 \label{subsubsection:Structuraldescr}
+\begin{lstlisting}[language=Verilog]
+    input wire [4:0] operation,  
+    input wire vsync, 
+    input reg [10:0] framenumber, 
+    output reg [2:0] currentstate[0:9][0:19], 
+    output reg [7:0] score,
+    output reg gameover,
+    input clock
+\end{lstlisting}}
 The logical module for the game consists of a single module that takes inputs from the top level wrapper and outputs the board state to the frame buffer. \newline
-The inputs are 
-\begin{itemize}
-    \item Wire vsync as the clock 
-    \item Wire net with Operations
-    \item The current framenumber 
-\end{itemize}
-
-The outputs are 
-\begin{itemize}
-    \item A 10x20 array of registers, with the gameboard state
-    \item An register with the score
-    \item A register that holds the gameover state 
-\end{itemize}
+along with the gamescore and a gameover state. The vsync acts as the clock that drives the game.
 
 Further, there are several interal components 
-\begin{itemize}
-    \item A 2x4 array of registers, tracking the coordinates of the 4 blocks in each Tetrimino
-    \item A register storing whether a tetrimino can move more or should be frozen in place
-    \item A game clock \pushkar{Can you think of a better description}
-    \item A register storing the code of the current tetrimino
-\end{itemize}
+\begin{lstlisting}[language=Verilog]
+    reg [2:0] tetrimino;
+    reg frozen;
+    reg [2:0] num_deleted;
+    reg [4:0] centerofmass [0:1][0:3]
+\end{lstlisting}}
+These parameters store the coordonites and type of the falling tetrimino and use it for
+
 
 \subsubsection{Interface}
 \label{subsubsection:interface}
@@ -73,7 +72,6 @@ When the gameclock updates module performs certain tasks
     \item If it is frozen, check whether the game is over checking whether any block of the top row is filled
     \item If the game isn't over, delete the rows that are filled, update the score ,move all rows above down, generate a new tetrimino
     \item If the tetrimino isn't frozen, move it down 
-    \item 
 \end{itemize}
 We faced issues issues with the syncing of the actions and input due to the relatively low framerate of the clock. 
 Therefore evaluating of the inputs is instead done at negedge vsync to prevent inputs 
