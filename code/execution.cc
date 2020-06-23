@@ -93,18 +93,7 @@ int main(int argc, char* argv[]){
         }
     }
 
-    // draw playfield border
-    int border_x = OFFSETX - 5;
-    int border_y = OFFSETY - 5;
-    for(int i = 0; i < 10*INTSCALE; i++ ){
-        pixel_array[(i + OFFSETX) + (OFFSETY)*WIDTH];
-        pixel_array[(i + OFFSETX) + (20 + OFFSETY)*WIDTH];
-    }
-    for(int j = 0; j < 20*INTSCALE; j++ ){
-        pixel_array[(OFFSETX) + (j + OFFSETY)*WIDTH] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), 0xFF, 0xFF, 0xFF, 0xFF);
-        pixel_array[(10 + OFFSETX) + (j + OFFSETY)*WIDTH]= SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), 0xFF, 0xFF, 0xFF, 0xFF);
-    }
-
+    // check window was opened
     if (window == nullptr){
         return -1;
     }
