@@ -73,8 +73,8 @@ When the gameclock updates module performs certain tasks
     \item If the game isn't over, delete the rows that are filled, update the score ,move all rows above down, generate a new tetrimino
     \item If the tetrimino isn't frozen, move it down 
 \end{itemize}
-We faced issues issues with the syncing of the actions and input due to the relatively low framerate of the clock. 
-Therefore evaluating of the inputs is instead done at negedge vsync to prevent inputs 
+We faced issues issues with the syncing of the above actions and input due to the relatively low framerate of the clock. 
+Therefore evaluating of the movement is instead done at \code{negedge vsync} to prevent inputs 
 from being evaluated simultaneously with the above evaluations.
 \subsubsection{Tetrimino Generation }
 \label{subsubsection:tetgen}
