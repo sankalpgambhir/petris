@@ -49,13 +49,13 @@ modules, with necessary root modules instantiated within this module.\\
 \subsubsection{Structural Description of Gameboard}
 \label{subsubsection:Structuraldescr}
 \begin{lstlisting}[language=Verilog]
-    input wire [3:0] operation,  
-    input wire vsync, 
-    input reg [10:0] framenumber, 
-    output reg [2:0] currentstate[0:9][0:19], 
-    output reg [7:0] score,
-    output reg gameover,
-    input clock
+    input wire [3:0] operation;  
+    input wire vsync;
+    input reg [10:0] framenumber;
+    output reg [2:0] currentstate[0:9][0:19];
+    output reg [7:0] score;
+    output reg gameover;
+    input clock;
 \end{lstlisting}
 The logical module for the game consists of a single module that 
 takes inputs from the top level wrapper and outputs the board state 
@@ -67,7 +67,7 @@ Further, there are several internal components:
     reg [2:0] tetrimino;
     reg frozen;
     reg [2:0] num_deleted;
-    reg [4:0] centerofmass [0:1][0:3]
+    reg [4:0] centerofmass [0:1][0:3];
 \end{lstlisting}
 These parameters store the coordinates and type of the falling 
 tetrimino and use it for tracking the position and state of the block.\\
