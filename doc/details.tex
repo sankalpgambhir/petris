@@ -1,7 +1,7 @@
 % description of block structure 
 The design is structured into 3 main tiers (see Fig. \ref{fig:blockdiag} ),
 the C++ wrapper (see \ref{subsection:cppwrap}), which handles clock
-processing and display simulation, the Verilog wrapper (see \ref{subsection:wrapper})
+processing and display simulation, the Verilog top module (see \ref{subsection:wrapper})
 which instantiates all lower tiered modules and acts as interfacing
 media for them. The third and bottom-most tier is split into two 
 main parts, handling game logic (see \ref{subsection:logicalmod}) and
@@ -41,7 +41,7 @@ several root modules, both harder to manage in practice, and
 unsupported as of yet for the purposes of simulation \cite{verilatortopmod}.
 So we create a module that accepts inputs from the C++ wrapper (\ref{subsection:cppwrap}),
 provides outputs to it, and acts as an interfacing media for the different
-modules, with necessary root modules instantiated within this wrapper.\\
+modules, with necessary root modules instantiated within this module.\\
 
 % logic supermodule
 \subsection{Logical Modules}
