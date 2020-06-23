@@ -12,7 +12,7 @@ display control (see \ref{subsection:display}) respectively.
     \centering
     \input{fig/blockdiag.tex}
     %\captionsetup{justification=centering}
-    \caption{Block diagram $\sankalp{Better\ caption?}$}
+    \caption{Block diagram}
 \label{fig:blockdiag}
 \end{figure}
 
@@ -20,12 +20,12 @@ display control (see \ref{subsection:display}) respectively.
 \subsection{Verilog Structuring}
 
 % wrapper
-\subsubsection{Wrapper}
+\subsubsection{Verilog Top Module}
 \label{subsection:wrapper}
 %
 \begin{lstlisting}[language=Verilog]
     input clock;
-    input [3:0] actions; // input user action [ROTATE | DOWN | LEFT | RIGHT]
+    input [3:0] operations; // input user action [ROTATE | DOWN | LEFT | RIGHT]
     output vsync;
     output hsync;
     output vga_r;
@@ -49,7 +49,7 @@ modules, with necessary root modules instantiated within this wrapper.\\
 \subsubsection{Structural Description of Gameboard}
 \label{subsubsection:Structuraldescr}
 \begin{lstlisting}[language=Verilog]
-    input wire [4:0] operation,  
+    input wire [3:0] operation,  
     input wire vsync, 
     input reg [10:0] framenumber, 
     output reg [2:0] currentstate[0:9][0:19], 
@@ -57,10 +57,12 @@ modules, with necessary root modules instantiated within this wrapper.\\
     output reg gameover,
     input clock
 \end{lstlisting}
-The logical module for the game consists of a single module that takes inputs from the top level wrapper and outputs the board state to the frame buffer. \newline
-along with the gamescore and a gameover state. The \code{vsync} acts as the clock that drives the game.
+The logical module for the game consists of a single module that 
+takes inputs from the top level wrapper and outputs the board state 
+to the frame buffer along with the gamescore and a gameover state. 
+The \code{vsync} acts as the clock that drives the game.
+Further, there are several internal components:
 
-Further, there are several internal components 
 \begin{lstlisting}[language=Verilog]
     reg [2:0] tetrimino;
     reg frozen;
@@ -73,15 +75,14 @@ tetrimino and use it for tracking the position and state of the block.\\
 \subsubsection{Interface}
 \label{subsubsection:interface}
 The instantiation of the module sets all the registers in the boardstate to 0. An initial tetrimino is generated.
-\newline 
-When the gameclock updates module performs certain tasks 
+When the gameclock updates module performs certain tasks :
 \begin{itemize}
     \item Check whether the current tetrimino is frozen or can move more
     \item If it is frozen, check whether the game is over checking whether any block of the top row is filled
-    \item If the game isn't over, delete the rows that are filled, update the score ,move all rows above down, generate a new tetrimino
+    \item If the game isn't over, delete the rows that are filled, update the score, move all rows above down, generate a new tetrimino
     \item If the tetrimino isn't frozen, move it down 
 \end{itemize}
-We faced issues issues with the syncing of the above actions and input due to the relatively low framerate of the clock. 
+We faced issues with the syncing of the above actions and input due to the relatively low framerate. 
 Therefore evaluating of the movement is instead done at \code{negedge vsync} to prevent inputs 
 from being evaluated simultaneously with the above evaluations.
 \subsubsection{Tetrimino Generation }
@@ -91,19 +92,19 @@ Every subsequent block is generated based on the framenumber
 at which the generation happens, which ensures sufficient percieved 
 randomness using a simple hashing
  \( \texttt{(Framenumber * PrimeNumber\ \%\ 7) + 1} \) 
-With the center of mass at (0,5).
+with its center of mass at (0, 5).
 \subsubsection{Motion Control }
 \label{subsubsection:motioncontrol}
 4 operations are allowed
 \begin{itemize}
-    \item Move down
-    \item Move left
+    \item Move Down
+    \item Move Left
     \item Move Right
     \item Rotate Clockwise
 \end{itemize}
- A tempory set of coordinates is created based on the current coordinates of the tetrimino and the operation 
+ A temporary set of coordinates is created based on the current coordinates of the tetrimino and the operation 
  \begin{itemize}
-     \item If the operation is to move left, right or down, all the 4 blocks in the tetrimino are moved by 1 block in the appropriate direction
+     \item If the operation is to move left, right, or down, all the 4 blocks in the tetrimino are moved by 1 block in the appropriate direction
      \item If the operation is to rotate, the center of mass remains constant while the other 3 blocks rotate clockwise by 90 degrees around the center of mass
  \end{itemize}
  If the operation is found to be valid, the coordinates are updated to
@@ -139,9 +140,9 @@ The VGA control module serves as a generator for the serial VGA output
 (ports 3-5) and instantiates the framer (\ref{subsubsection:framer}) and
 the synchronisation module (\ref{subsubsection:vgasync}).
 
-Every \(\texttt{vga\_clock}\) (see \ref{subsubsection:vgasync}), based on the
-current \(\texttt{count\_x}\) and \(\texttt{count\_y}\), the relevant pixel from \\
-\(\texttt{frame\_buffer}\) is outputted to the VGA bus.\\
+Every \(\texttt{vga\_clock}\) (see \ref{subsubsection:vgasync}), the relevant pixel from
+\(\texttt{frame\_buffer}\) is outputted to the VGA bus, based on the
+current \(\texttt{count\_x}\) and \(\texttt{count\_y}\).\\
  
 
 \subsubsection{Framer Module}
@@ -161,7 +162,8 @@ potentially causing overwriting and synchronisation issues.
 The module writes this frame buffer onto an output buffer at \(\texttt{vsync}\), 
 in turn sent onto VGA rails serially (\ref{subsubsection:vgacontrol})
 over the course of the next frame cycle. After flushing this data, the buffer is cleared,
-i.e. written over with black, preparing it for the next output cycle.\\
+i.e. written over with black, preparing it for the next output cycle.
+\pagebreak
 
 \subsubsection{Synchronisation Module}
 \label{subsubsection:vgasync}
@@ -186,7 +188,7 @@ signals critical to the VGA control flow:
             variable. The multiplier variable can be easily adjusted at runtime
             to allow for adjusting frame times in the event of a performance
             bottleneck or sudden throttle to prevent a drop in frametimes. This
-            is akin to a primitive version of modern Adaptive Syncing ,
+            is akin to a primitive version of modern Adaptive Syncing \cite{varrefresh},
             now popularized as some technologies built into modern GPUs,
             such as AMD Freesync \cite{freesync} and Nvidia G-Sync \cite{gsync}. 
             Modern implementations instead use a specialised controller on the display
@@ -195,7 +197,7 @@ signals critical to the VGA control flow:
     \item \(\texttt{vsync / hsync}\) --- sync signals standardized as part of the VGA
             standard \cite{vgastandard}. Intended to be passed via a DAC to the monitor.
             In our implementation, \(\texttt{hsync}\) sees little use other than this,
-            while \(\texttt{vsync}\), marking, the end of a frame, is at several points 
+            while \(\texttt{vsync}\), marking the end of a frame, is at several points 
             (\ref{subsubsection:interface}, \ref{subsubsection:motioncontrol}, \ref{subsubsection:framer}, 
             \ref{subsection:cppwrap}) used to flush a frame buffer or to advance a logical step.
 \end{itemize}
@@ -220,7 +222,7 @@ Verilog Procedural Interface (VPI) \cite{vpi}, drawing the resultant
 VGA output via Simple DirectMedia Layer \cite{sdl2} referred to as 
 SDL herein. We were driven away by a cocktail of issues --- primarily
 the performance, combined with the relative inflexibility of VPI 
-and the now obsolete SDL API. However, the cocktail
+and the now obsolete \cite{sdl_obsolete} SDL API. However, the cocktail
 was more than resolvable. 
 \\
 \\
@@ -230,12 +232,6 @@ I/O interfaces handled via classes \cite{verilator-implement}. This allowed
 us to bypass having to deal with VPI's idiosyncrasies and limited nature, paired
 with the finicky fixes required to obtain a realtime driven clock.
 \\
-\\
-Armed with a way to handle inputs and outputs to our modules in realtime, we 
-needed a VGA simulator to handle the outputs. This was executed using
-SDL2 and a low-level frame-buffer, rendering to screen via 
-a cross-platform hardware accelerated rendering interface (with OpenGL \cite{opengl}
-primarily used for testing).
 
 \begin{figure}[h]
     \centering
@@ -244,8 +240,14 @@ primarily used for testing).
 \label{fig:output}
 \end{figure}
 
+Armed with a way to handle inputs and outputs to our modules in realtime, we 
+needed a VGA simulator to handle the outputs. This was executed using
+SDL2 and a low-level frame-buffer, rendering to screen via 
+a cross-platform hardware accelerated rendering interface (with OpenGL \cite{opengl}
+primarily used for testing).\\
+
 However, a software based simulation is unable to drive a clock fast enough
-to run a VGA simulation in any of the common modes \cite{vga_modes}. As such,
+to run a VGA simulation in any of the common modes. As such,
 a myriad of performance-centric changes had to be made. Alongside several
 minor optimizations was a major change to the system --- a drastic reduction in
 resolution or frame rate. Realistically, keeping the same resolution, the frame 
