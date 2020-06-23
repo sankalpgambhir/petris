@@ -14,6 +14,19 @@
 
 % wrapper
 \subsubsection{Wrapper}
+%
+\begin{lstlisting}[language=Verilog]
+    input clock;
+    input reg [3:0] actions; // input user action [ROTATE | DOWN | LEFT | RIGHT]
+    output vsync;
+    output hsync;
+    output vga_r;
+    output vga_g;
+    output vga_b;
+    output reg [7:0] score;
+    output reg gameover;
+\end{lstlisting}
+
 Verilog modules are instantiated top-down for the purposes of the 
 simulation. The logical structure of the design leaves us with 
 several root modules, both harder to manage in practice, and 
@@ -107,6 +120,15 @@ Two things are checked to see whether a move is valid
 \subsubsection{VGA Control Module}
 \label{subsubsection:vgacontrol}
 %
+\begin{lstlisting}[language=Verilog]
+    input clock;
+    input reg [2:0] frame [0:9] [0:19], // frame [x][y][R | G | B]
+    output reg [2:0] vga_pixel, // output bus for 3-bit RGB color
+    output hsync_out;
+    output vsync_out;
+\end{lstlisting}
+ 
+
 \subsubsection{Framer Module}
 \label{subsubsection:framer}
 %
@@ -128,6 +150,16 @@ i.e. written over with black, preparing it for the next output cycle.
 \subsubsection{Synchronisation Module}
 \label{subsubsection:vgasync}
 %
+\begin{lstlisting}[language=Verilog]
+    input clock;
+    output vga_clock;
+    output hsync;              
+    output vsync;               
+    output in_display;          
+    output reg [9:0] count_x;
+    output reg [9:0] count_y;
+\end{lstlisting}
+
 The Synchronisation Module receives a \(\texttt{clock}\) signal from
 the VGA controller (\ref{subsubsection:vgacontrol}) and calculates several
 signals critical to the VGA control flow:
@@ -139,7 +171,7 @@ signals critical to the VGA control flow:
             to allow for adjusting frame times in the event of a performance
             bottleneck or sudden throttle to prevent a drop in frametimes. This
             is akin to a primitive version of modern Adaptive Syncing \cite{varrefresh},
-            now popularized as often proprietary technologies built into modern GPUs,
+            now popularized as some technologies built into modern GPUs,
             such as AMD Freesync \cite{freesync} and Nvidia G-Sync \cite{gsync}. 
             Modern implementations instead use a specialised controller on the display
             side as well, communicating actively with its counterpart in the GPU,
