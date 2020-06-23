@@ -1,4 +1,11 @@
 % description of block structure 
+The design is structured into 3 main tiers (see Fig. \ref{fig:blockdiag} ),
+the C++ wrapper (see \ref{subsection:cppwrap}), which handles clock
+processing and display simulation, the Verilog wrapper (see \ref{subsection:wrapper})
+which instantiates all lower tiered modules and acts as interfacing
+media for them. The third and bottom-most tier is split into two 
+main parts, handling game logic (see \ref{subsection:logicalmod}) and
+display control (see \ref{subsection:display}) respectively.
 
 % block diagram
 \begin{figure}[ht]
@@ -10,10 +17,11 @@
 \end{figure}
 
 % verilog
-\subsection{Verilog Modules}
+\subsection{Verilog Structuring}
 
 % wrapper
 \subsubsection{Wrapper}
+\label{subsection:wrapper}
 %
 \begin{lstlisting}[language=Verilog]
     input clock;
@@ -33,10 +41,10 @@ several root modules, both harder to manage in practice, and
 unsupported as of yet for the purposes of simulation \cite{verilatortopmod}.
 So we create a module that accepts inputs from the C++ wrapper (\ref{subsection:cppwrap}),
 provides outputs to it, and acts as an interfacing media for the different
-modules, with necessary root modules instantiated within this wrapper.
+modules, with necessary root modules instantiated within this wrapper.\\
 
 % logic supermodule
-\subsubsection{Logical Modules}
+\subsection{Logical Modules}
 \label{subsection:logicalmod}
 \subsubsection{Structural Description}
 \label{subsubsection:Structuraldescr}
@@ -60,7 +68,7 @@ Further, there are several internal components
     reg [4:0] centerofmass [0:1][0:3]
 \end{lstlisting}
 These parameters store the coordinates and type of the falling 
-tetrimino and use it for tracking the position and state of the block.
+tetrimino and use it for tracking the position and state of the block.\\
 
 \subsubsection{Interface}
 \label{subsubsection:interface}
@@ -113,7 +121,7 @@ Two things are checked to see whether a move is valid
 \end{itemize}
 
 % display supermodule
-\subsubsection{Display Modules}
+\subsection{Display Modules}
 \label{subsection:display}
 
 \subsubsection{VGA Control Module}
@@ -131,7 +139,7 @@ The VGA control module serves as a generator for the serial VGA output
 (ports 3-5) and instantiates the framer (\ref{subsubsection:framer}) and
 the synchronisation module (\ref{subsubsection:vgasync}).
 
-Every \(\texttt{vga\_clock}\) (see \ref{paragraph:vgasync}), based on the
+Every \(\texttt{vga\_clock}\) (see \ref{subsubsection:vgasync}), based on the
 current \(\texttt{count\_x}\) and \(\texttt{count\_y}\), the relevant pixel from \\
 \(\texttt{frame\_buffer}\) is outputted to the VGA bus.\\
  

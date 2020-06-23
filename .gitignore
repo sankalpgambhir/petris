@@ -10,3 +10,4 @@ doc/*.pdf
 *.fls
 *.log
 *.synctex(busy)
+*.out
