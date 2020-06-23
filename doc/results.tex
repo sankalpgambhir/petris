@@ -1,10 +1,19 @@
-The game works as intended with the operations being correctly evaluated and the gameboard updating correct to reflect all the changes. The score updates correctly on deletion of full rows, with greater weights 
+The game works as intended with the operations being correctly evaluated
+ and the gameboard updating correctly to reflect all the changes. The score updates correctly on deletion of full rows, with greater weights 
 being given to deleting more rows simultaneously. The game correctly ends on any coloumn being filled. \\
-A quick gameplay run showing this can be seen in the folllowing video: 
+A quick gameplay run showing this can be seen in the folllowing video: \\
+ https://drive.google.com/drive/folders/1vZAzBuaDIm5yseN7SvnVuGAI3CmcGi4w?usp=sharing
 
-\\There are several optimizaions and additional features that can be implemented. Implementations to the User Interface
+\\
+There are several optimizaions and additional features that can be implemented. Implementations to the User Interface could include
 \begin{itemize}
     \item A game reset button that allows you to play multiple games on one execution
     \item A high score display that keeps track of your best performances
 \end{itemize}} 
+Potential optimizations to the game would include
+\begin{itemize}
+    \item Improving the framerate of the VGA simulator
+    \item Introducing more parallel updating for the game logic, which it is currently not due to synchronization and framerate issues. This currently doesn't matter 
+     due to the low framerate being the rate determining step but this should definitely be done if using a real FPGA 
+\end{itemize}}
 
