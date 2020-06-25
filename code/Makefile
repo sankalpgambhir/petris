@@ -9,7 +9,7 @@ all: fresh
 
 clean:
 	@rm -rf ./obj_dir/
-	@rm *.o
+	@rm -f *.o
 
 verilate: 
 	@verilator amain_wrapper.v --cc -Wno-WIDTH
