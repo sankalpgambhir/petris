@@ -36,4 +36,4 @@ Use a program such as Okular to open the generated PDF file:
 okular main.pdf
 ```
 
-Copyright &copy 2020 Sankalp Gambhir and Pushkar Mohile under the MPL-2.0. See the `LICENSE` file for more details.
+Copyright &copy; 2020 Sankalp Gambhir and Pushkar Mohile under the MPL-2.0. See the `LICENSE` file for more details.
